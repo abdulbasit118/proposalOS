@@ -248,7 +248,18 @@ export default function Home() {
       </section>
 
       <footer className="border-t border-white/10 py-6 text-center text-sm text-gray-400">
-        ProposalOS © 2026
+        <div className="flex flex-col items-center gap-2 sm:flex-row sm:justify-center">
+          <span>ProposalOS © 2026</span>
+          <a
+            href="https://forms.gle/GTkp4vDfEt7K1njo7"
+            target="_blank"
+            rel="noreferrer noopener"
+            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-gray-300 transition hover:bg-white/10 hover:text-gray-100"
+          >
+            <span className="text-base leading-none">💬</span>
+            Give Feedback
+          </a>
+        </div>
       </footer>
 
       {showExamplesModal && (

@@ -47,6 +47,33 @@ export default function ProposalGenerator() {
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [matchData, setMatchData] = useState<MatchScoreResponse | null>(null);
   const [proposalData, setProposalData] = useState<ProposalResponse | null>(null);
+  const [showFeedbackToast, setShowFeedbackToast] = useState(false);
+
+  const FEEDBACK_FORM_URL = "https://forms.gle/GTkp4vDfEt7K1njo7";
+  const FEEDBACK_SESSION_KEY = "proposalos_feedback_toast_shown";
+
+  const hasShownFeedbackThisSession = () => {
+    try {
+      return sessionStorage.getItem(FEEDBACK_SESSION_KEY) === "1";
+    } catch {
+      return false;
+    }
+  };
+
+  const markFeedbackShownThisSession = () => {
+    try {
+      sessionStorage.setItem(FEEDBACK_SESSION_KEY, "1");
+    } catch {
+      // ignore
+    }
+  };
+
+  const maybeShowFeedbackToast = () => {
+    if (showFeedbackToast) return;
+    if (hasShownFeedbackThisSession()) return;
+    markFeedbackShownThisSession();
+    setShowFeedbackToast(true);
+  };
 
   useEffect(() => {
     if (!copied) return;
@@ -62,6 +89,17 @@ export default function ProposalGenerator() {
       return () => window.clearTimeout(timer);
     }
   }, [matchData, proposalData]);
+
+  useEffect(() => {
+    if (!showResults) return;
+
+    // Show after the proposal is generated and visible.
+    const timer = window.setTimeout(() => {
+      maybeShowFeedbackToast();
+    }, 30000);
+
+    return () => window.clearTimeout(timer);
+  }, [showResults]);
 
   useEffect(() => {
     if (!isLoading) {
@@ -157,6 +195,7 @@ export default function ProposalGenerator() {
     try {
       await navigator.clipboard.writeText(proposalData.proposal);
       setCopied(true);
+      maybeShowFeedbackToast();
     } catch {
       setError("Could not copy to clipboard.");
     }
@@ -315,6 +354,36 @@ export default function ProposalGenerator() {
           </div>
         )}
       </div>
+
+      {showFeedbackToast && (
+        <div className="fixed bottom-5 right-5 z-[9998] w-full max-w-[320px] modal-fade-in">
+          <div className="rounded-2xl border border-white/10 bg-[#131313] p-4 shadow-2xl">
+            <h3 className="text-sm font-semibold text-gray-100">
+              Enjoying ProposalOS? 🎉
+            </h3>
+            <p className="mt-2 text-xs text-gray-300">
+              Takes 2 minutes — help us improve!
+            </p>
+
+            <div className="mt-4 flex gap-2">
+              <button
+                type="button"
+                onClick={() => window.open(FEEDBACK_FORM_URL, "_blank", "noopener,noreferrer")}
+                className="flex-1 rounded-lg bg-cyan-500 px-3 py-2 text-xs font-semibold text-slate-900 transition hover:bg-cyan-400"
+              >
+                Give Feedback
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowFeedbackToast(false)}
+                className="flex-1 rounded-lg border border-white/20 bg-white/5 px-3 py-2 text-xs font-semibold text-gray-200 transition hover:bg-white/10"
+              >
+                Maybe Later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
