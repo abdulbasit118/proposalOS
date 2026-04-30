@@ -48,7 +48,7 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
   const [userSkills, setUserSkills] = useState("");
   const [userExperience, setUserExperience] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
@@ -212,18 +212,28 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
       setMatchData(matchJson);
       setProposalData(proposalJson);
 
+      // Only increment guest count on successful response
       if (isGuest) {
         const newCount = parseInt(localStorage.getItem(GUEST_COUNT_KEY) || "0", 10) + 1;
         localStorage.setItem(GUEST_COUNT_KEY, newCount.toString());
         setGuestCount(newCount);
       }
-    } catch {
-      setError("friendly");
+    } catch (err) {
+      const isTimeout = err instanceof DOMException && err.name === "AbortError";
+      setError(isTimeout ? "timeout" : "friendly");
       setMatchData(null);
       setProposalData(null);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleTryAgain = () => {
+    setError(null);
+    setMatchData(null);
+    setProposalData(null);
+    setShowResults(false);
+    submit();
   };
 
   const copyProposal = async () => {
@@ -307,14 +317,26 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
           {error && (
             <div className="mt-4 rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-6 py-5 text-center">
               <div className="text-2xl">⚠️</div>
-              <h3 className="mt-2 text-lg font-semibold text-yellow-100">Something went wrong</h3>
-              <p className="mt-1 text-sm text-yellow-200">Our AI is taking a break. Please try again!</p>
+              <h3 className="mt-2 text-lg font-semibold text-yellow-100">
+                {error === "timeout" ? "AI is taking too long" : "Something went wrong"}
+              </h3>
+              <p className="mt-1 text-sm text-yellow-200">
+                {error === "timeout" ? "AI is taking too long. Please try again!" : "Our AI is taking a break. Please try again!"}
+              </p>
               <button
                 type="button"
-                onClick={() => setError("")}
-                className="mt-4 inline-flex items-center justify-center rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400"
+                onClick={handleTryAgain}
+                disabled={isLoading}
+                className="mt-4 inline-flex items-center justify-center rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400 disabled:opacity-70"
               >
-                Try Again
+                {isLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-900 border-t-transparent" />
+                    Retrying...
+                  </span>
+                ) : (
+                  "Try Again"
+                )}
               </button>
             </div>
           )}

@@ -45,6 +45,14 @@ export default function Home() {
   const [copiedExample, setCopiedExample] = useState<string | null>(null);
   const [guestMode, setGuestMode] = useState(false);
 
+  // Check if guest mode should persist on refresh
+  useEffect(() => {
+    const guestCount = parseInt(localStorage.getItem("guestProposalCount") || "0", 10);
+    if (guestCount > 0 && guestCount < 3) {
+      setGuestMode(true);
+    }
+  }, []);
+
   useEffect(() => {
     let mounted = true;
 
@@ -253,7 +261,30 @@ export default function Home() {
         ) : (
           <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-6 py-5 text-center text-sm text-cyan-100">
-              Please sign in with Google to generate proposals and match scores.
+              <p className="mb-4">Sign in with Google or try Guest Mode to generate your first proposal</p>
+              <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
+                <button
+                  type="button"
+                  onClick={handleSignIn}
+                  className="inline-flex items-center justify-center rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400"
+                >
+                  Sign in with Google
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setGuestMode(true);
+                    const element = document.getElementById("generator");
+                    if (element) {
+                      const top = element.getBoundingClientRect().top + window.pageYOffset - 80;
+                      window.scrollTo({ top, behavior: "smooth" });
+                    }
+                  }}
+                  className="inline-flex items-center justify-center rounded-lg border border-white/20 px-4 py-2 text-sm font-semibold text-gray-100 transition hover:bg-white/10"
+                >
+                  Try as Guest
+                </button>
+              </div>
             </div>
           </div>
         )}

@@ -116,14 +116,18 @@ export async function POST(req: Request) {
 
   try {
     for (let attempt = 1; attempt <= MAX_PARSE_RETRIES; attempt++) {
-      const completion = await client.chat.completions.create({
-        model: "nvidia/nemotron-3-super-120b-a12b:free",
-        temperature: 0.1,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          {
-            role: "user",
-            content: `Job description:
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 90000);
+
+      const completion = await client.chat.completions.create(
+        {
+          model: "nvidia/nemotron-3-super-120b-a12b:free",
+          temperature: 0.1,
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            {
+              role: "user",
+              content: `Job description:
 ${jobDescription}
 
 Freelancer skills:
@@ -140,9 +144,13 @@ Return JSON only with this exact shape:
   "gaps": ["string", "string"],
   "improvement_tip": "string"
 }`,
-          },
-        ],
-      });
+            },
+          ],
+        },
+        { signal: controller.signal }
+      );
+
+      clearTimeout(timeout);
 
       const content = completion.choices[0]?.message?.content;
       if (!content) {
@@ -165,6 +173,9 @@ Return JSON only with this exact shape:
 
     return NextResponse.json({ error: "Model returned invalid JSON payload format." }, { status: 502 });
   } catch (error) {
+    if (error instanceof DOMException && error.name === "AbortError") {
+      return NextResponse.json({ error: "timeout" }, { status: 504 });
+    }
     if (error instanceof OpenAI.APIError) {
       const status = error.status ?? 502;
       return NextResponse.json(
