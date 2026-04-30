@@ -171,12 +171,19 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
         userExperience: userExperience.trim(),
       };
 
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (isGuest) {
+        headers["x-guest-mode"] = "true";
+      }
+
       const [matchRes, proposalRes] = await Promise.all([
         fetchWithTimeout(
           "/api/match-score",
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify(payload),
           },
           FETCH_TIMEOUT_MS,
@@ -185,7 +192,7 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
           "/api/generate-proposal",
           {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers,
             body: JSON.stringify({
               jobDescription: payload.jobDescription,
               voiceProfile: `Skills: ${payload.userSkills}. Experience: ${payload.userExperience}.`,

@@ -37,7 +37,10 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  if (PROTECTED_API_ROUTES.has(req.nextUrl.pathname) && !session) {
+  // Check for guest mode header to skip authentication
+  const isGuestMode = req.headers.get("x-guest-mode") === "true";
+
+  if (PROTECTED_API_ROUTES.has(req.nextUrl.pathname) && !session && !isGuestMode) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
