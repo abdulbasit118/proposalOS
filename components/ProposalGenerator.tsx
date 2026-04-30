@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { getSupabaseBrowserClient } from "@/lib/supabase-client";
 
 type MatchScoreResponse = {
   score: number;
@@ -36,7 +37,13 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
   }
 }
 
-export default function ProposalGenerator() {
+type ProposalGeneratorProps = {
+  isGuest?: boolean;
+};
+
+const GUEST_COUNT_KEY = "guestProposalCount";
+
+export default function ProposalGenerator({ isGuest = false }: ProposalGeneratorProps) {
   const [jobDescription, setJobDescription] = useState("");
   const [userSkills, setUserSkills] = useState("");
   const [userExperience, setUserExperience] = useState("");
@@ -48,6 +55,15 @@ export default function ProposalGenerator() {
   const [matchData, setMatchData] = useState<MatchScoreResponse | null>(null);
   const [proposalData, setProposalData] = useState<ProposalResponse | null>(null);
   const [showFeedbackToast, setShowFeedbackToast] = useState(false);
+  const [showGuestLimitModal, setShowGuestLimitModal] = useState(false);
+  const [guestCount, setGuestCount] = useState(0);
+
+  useEffect(() => {
+    if (isGuest) {
+      const count = parseInt(localStorage.getItem(GUEST_COUNT_KEY) || "0", 10);
+      setGuestCount(count);
+    }
+  }, [isGuest]);
 
   const FEEDBACK_FORM_URL = "https://forms.gle/GTkp4vDfEt7K1njo7";
   const FEEDBACK_SESSION_KEY = "proposalos_feedback_toast_shown";
@@ -120,10 +136,27 @@ export default function ProposalGenerator() {
     return "text-red-400";
   };
 
+  const handleGuestSignIn = async () => {
+    const supabase = getSupabaseBrowserClient();
+    const redirectTo = `${window.location.origin}/auth/callback`;
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+  };
+
   const submit = async () => {
     if (!jobDescription.trim() || !userSkills.trim() || !userExperience.trim()) {
       setError("Please fill in job description, skills, and experience.");
       return;
+    }
+
+    if (isGuest) {
+      const currentCount = parseInt(localStorage.getItem(GUEST_COUNT_KEY) || "0", 10);
+      if (currentCount >= 3) {
+        setShowGuestLimitModal(true);
+        return;
+      }
     }
 
     setError("");
@@ -175,6 +208,12 @@ export default function ProposalGenerator() {
 
       setMatchData(matchJson);
       setProposalData(proposalJson);
+
+      if (isGuest) {
+        const newCount = parseInt(localStorage.getItem(GUEST_COUNT_KEY) || "0", 10) + 1;
+        localStorage.setItem(GUEST_COUNT_KEY, newCount.toString());
+        setGuestCount(newCount);
+      }
     } catch (err) {
       const message =
         err instanceof DOMException && err.name === "AbortError"
@@ -254,6 +293,16 @@ export default function ProposalGenerator() {
             {isLoading && (
               <p className="text-center text-xs text-gray-400">
                 This may take up to 60 seconds on free tier
+              </p>
+            )}
+            {isGuest && (
+              <p className={`text-center text-xs ${
+                guestCount === 0 ? "text-emerald-400" :
+                guestCount === 1 ? "text-emerald-400" :
+                guestCount === 2 ? "text-yellow-400" :
+                "text-red-400"
+              }`}>
+                Guest mode: {guestCount}/3 free proposals used
               </p>
             )}
           </div>
@@ -354,6 +403,34 @@ export default function ProposalGenerator() {
           </div>
         )}
       </div>
+
+      {showGuestLimitModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 px-4">
+          <div className="modal-fade-in w-full max-w-md rounded-2xl border border-white/15 bg-[#131313] p-6 text-center shadow-2xl relative">
+            <button
+              type="button"
+              onClick={() => setShowGuestLimitModal(false)}
+              className="absolute top-4 right-4 rounded-md border border-white/20 px-2 py-1 text-xs text-gray-200 hover:bg-white/10"
+            >
+              Close
+            </button>
+            <h3 className="text-xl font-semibold mt-2">You&apos;ve used all 3 free proposals!</h3>
+            <p className="mt-3 text-sm text-gray-300">
+              Sign in with Google to get unlimited proposals for free
+            </p>
+            <button
+              type="button"
+              onClick={handleGuestSignIn}
+              className="mt-6 inline-flex w-full items-center justify-center rounded-xl bg-cyan-500 px-5 py-3 text-base font-semibold text-slate-900 transition hover:bg-cyan-400"
+            >
+              Sign in with Google
+            </button>
+            <p className="mt-3 text-xs text-gray-400">
+              100% free • No credit card
+            </p>
+          </div>
+        </div>
+      )}
 
       {showFeedbackToast && (
         <div className="fixed bottom-5 right-5 z-[9998] w-full max-w-[320px] modal-fade-in">

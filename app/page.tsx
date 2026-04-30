@@ -43,6 +43,7 @@ export default function Home() {
   const [showExamplesModal, setShowExamplesModal] = useState(false);
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [copiedExample, setCopiedExample] = useState<string | null>(null);
+  const [guestMode, setGuestMode] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -122,7 +123,21 @@ export default function Home() {
     <main className="min-h-screen bg-[#0f0f0f] text-gray-100">
       <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 pt-6 sm:px-6 lg:px-8">
         <p className="text-sm font-medium uppercase tracking-[0.2em] text-cyan-300">ProposalOS</p>
-        <AuthButton />
+        <div className="flex items-center gap-3">
+          {guestMode && !user && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-gray-400">Guest Mode</span>
+              <button
+                type="button"
+                onClick={handleSignIn}
+                className="rounded-md border border-white/20 px-2 py-1 text-xs text-gray-200 hover:bg-white/10"
+              >
+                Sign In
+              </button>
+            </div>
+          )}
+          <AuthButton />
+        </div>
       </header>
 
       <section className="mx-auto w-full max-w-6xl px-4 pt-12 sm:px-6 lg:px-8">
@@ -135,20 +150,35 @@ export default function Home() {
             shows you which jobs to apply for first.
           </p>
 
-          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+          <div className="mt-7 flex w-full flex-col gap-3 sm:flex-row">
             <button
               type="button"
               onClick={handleTryFreeNow}
-              className="inline-flex items-center justify-center rounded-xl bg-cyan-500 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-cyan-500 px-5 py-3 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400 sm:w-auto"
             >
               Try Free Now
             </button>
             <button
               type="button"
               onClick={() => setShowExamplesModal(true)}
-              className="inline-flex items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-gray-100 transition hover:bg-white/10"
+              className="inline-flex w-full items-center justify-center rounded-xl border border-white/20 bg-white/5 px-5 py-3 text-sm font-semibold text-gray-100 transition hover:bg-white/10 sm:w-auto"
             >
               See Examples
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setGuestMode(true);
+                const element = document.getElementById("generator");
+                if (element) {
+                  const top = element.getBoundingClientRect().top + window.pageYOffset - 80;
+                  window.scrollTo({ top, behavior: "smooth" });
+                }
+              }}
+              className="inline-flex w-full flex-col items-center justify-center rounded-xl border border-white/20 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10 sm:w-auto"
+            >
+              <span>Try as Guest</span>
+              <span className="text-xs font-normal text-gray-400">3 free proposals • No signup needed</span>
             </button>
           </div>
         </div>
@@ -218,8 +248,8 @@ export default function Home() {
       </section>
 
       <section id="generator" className="mt-10 pb-10">
-        {user ? (
-          <ProposalGenerator />
+        {user || guestMode ? (
+          <ProposalGenerator isGuest={guestMode && !user} />
         ) : (
           <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-6 py-5 text-center text-sm text-cyan-100">
