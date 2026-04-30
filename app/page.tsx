@@ -44,6 +44,7 @@ export default function Home() {
   const [showSignInModal, setShowSignInModal] = useState(false);
   const [copiedExample, setCopiedExample] = useState<string | null>(null);
   const [guestMode, setGuestMode] = useState(false);
+  const [expandedFeatures, setExpandedFeatures] = useState<Record<string, boolean>>({});
 
   // Check if guest mode should persist on refresh
   useEffect(() => {
@@ -236,28 +237,116 @@ export default function Home() {
       <section className="mx-auto mt-10 w-full max-w-6xl px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-semibold sm:text-3xl">Features</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {[
-            {
-              title: "Smart Match Score",
-              desc: "Know in seconds whether a job is worth your time before you write anything.",
-            },
-            {
-              title: "Voice-Matched Writing",
-              desc: "Proposals mirror your writing style so every pitch sounds like you, not a template.",
-            },
-            {
-              title: "Pain Point Detection",
-              desc: "Highlights client urgency, budget signals, and core problems to address up front.",
-            },
-          ].map((feature) => (
+          {/* Feature 1 - Smart Match Score */}
+          <div className="rounded-xl border border-white/10 bg-[#171717] p-5 shadow-lg">
+            <h3 className="text-lg font-semibold text-cyan-200">Smart Match Score</h3>
+            <p className="mt-2 text-sm text-gray-300">
+              AI analyzes job requirements against your skills and gives a 0-100 match score
+            </p>
             <div
-              key={feature.title}
-              className="rounded-xl border border-white/10 bg-[#171717] p-5 shadow-lg"
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                expandedFeatures["match-score"] ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+              }`}
             >
-              <h3 className="text-lg font-semibold text-cyan-200">{feature.title}</h3>
-              <p className="mt-2 text-sm text-gray-300">{feature.desc}</p>
+              <p className="mt-3 text-sm text-gray-400">
+                Know before you apply. The match score breaks down your strengths, identifies skill gaps, and gives you one specific tip to improve your chances. Stop wasting proposals on jobs you won&apos;t get.
+              </p>
             </div>
-          ))}
+            <button
+              type="button"
+              onClick={() =>
+                setExpandedFeatures((prev) => ({
+                  ...prev,
+                  "match-score": !prev["match-score"],
+                }))
+              }
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-cyan-400 transition hover:text-cyan-300"
+            >
+              {expandedFeatures["match-score"] ? (
+                <>
+                  Show less <span className="text-xs">↑</span>
+                </>
+              ) : (
+                <>
+                  Read more <span className="text-xs">↓</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Feature 2 - Voice-Matched Writing */}
+          <div className="rounded-xl border border-white/10 bg-[#171717] p-5 shadow-lg">
+            <h3 className="text-lg font-semibold text-cyan-200">Voice-Matched Writing</h3>
+            <p className="mt-2 text-sm text-gray-300">
+              Proposals written in your exact tone and style, not generic AI text
+            </p>
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                expandedFeatures["voice-matched"] ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <p className="mt-3 text-sm text-gray-400">
+                Every freelancer has a unique voice. ProposalOS learns your sentence length, formality level, and opening patterns from your past work. Result: proposals that sound exactly like you wrote them — because the AI learned from you.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setExpandedFeatures((prev) => ({
+                  ...prev,
+                  "voice-matched": !prev["voice-matched"],
+                }))
+              }
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-cyan-400 transition hover:text-cyan-300"
+            >
+              {expandedFeatures["voice-matched"] ? (
+                <>
+                  Show less <span className="text-xs">↑</span>
+                </>
+              ) : (
+                <>
+                  Read more <span className="text-xs">↓</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          {/* Feature 3 - Pain Point Detection */}
+          <div className="rounded-xl border border-white/10 bg-[#171717] p-5 shadow-lg">
+            <h3 className="text-lg font-semibold text-cyan-200">Pain Point Detection</h3>
+            <p className="mt-2 text-sm text-gray-300">
+              Finds what the client actually wants before writing a single word
+            </p>
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                expandedFeatures["pain-point"] ? "max-h-40 opacity-100" : "max-h-0 opacity-0"
+              }`}
+            >
+              <p className="mt-3 text-sm text-gray-400">
+                Clients rarely say what they really need. Our AI reads between the lines — finds the hidden frustration, the real deadline pressure, the unstated requirement. Then opens your proposal by addressing that pain directly. This is why our proposals get replies when others don&apos;t.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() =>
+                setExpandedFeatures((prev) => ({
+                  ...prev,
+                  "pain-point": !prev["pain-point"],
+                }))
+              }
+              className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-cyan-400 transition hover:text-cyan-300"
+            >
+              {expandedFeatures["pain-point"] ? (
+                <>
+                  Show less <span className="text-xs">↑</span>
+                </>
+              ) : (
+                <>
+                  Read more <span className="text-xs">↓</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -300,17 +389,97 @@ export default function Home() {
       <section className="mx-auto mb-10 w-full max-w-6xl px-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-semibold sm:text-3xl">Pricing</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {/* Free Plan - Active */}
           <div className="rounded-xl border border-white/10 bg-[#171717] p-6 shadow-lg">
-            <h3 className="text-lg font-semibold">Free</h3>
-            <p className="mt-2 text-sm text-gray-300">5 proposals/day</p>
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Free</h3>
+              <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-400">
+                Current Plan
+              </span>
+            </div>
+            <ul className="mt-4 space-y-2 text-sm text-gray-300">
+              <li className="flex items-center gap-2">
+                <span className="text-emerald-400">✓</span> 3 proposals per day
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-emerald-400">✓</span> Match score analysis
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-emerald-400">✓</span> Guest mode (3 tries)
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-emerald-400">✓</span> Google sign in required
+              </li>
+            </ul>
+            <button
+              type="button"
+              onClick={() => {
+                const element = document.getElementById("generator");
+                if (element) {
+                  const top = element.getBoundingClientRect().top + window.pageYOffset - 80;
+                  window.scrollTo({ top, behavior: "smooth" });
+                }
+              }}
+              className="mt-5 inline-flex w-full items-center justify-center rounded-xl bg-cyan-500 px-5 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400"
+            >
+              Get Started Free
+            </button>
           </div>
-          <div className="rounded-xl border border-cyan-400/30 bg-[#171717] p-6 shadow-lg">
-            <h3 className="text-lg font-semibold text-cyan-200">Pro $19/mo</h3>
-            <p className="mt-2 text-sm text-gray-300">unlimited proposals + history</p>
+
+          {/* Pro Plan - Coming Soon */}
+          <div className="rounded-xl border border-white/10 bg-[#171717] p-6 shadow-lg opacity-40">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-cyan-200">Pro $19/mo</h3>
+              <span className="rounded-full border border-yellow-400/40 bg-yellow-500/10 px-2.5 py-1 text-xs font-medium text-yellow-400">
+                Coming Soon
+              </span>
+            </div>
+            <ul className="mt-4 space-y-2 text-sm text-gray-300">
+              <li className="flex items-center gap-2">
+                <span className="text-gray-500">✓</span> Unlimited proposals
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-gray-500">✓</span> Full proposal history
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-gray-500">✓</span> Advanced analytics
+              </li>
+            </ul>
+            <button
+              type="button"
+              disabled
+              className="mt-5 inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl bg-gray-600 px-5 py-2.5 text-sm font-semibold text-gray-300"
+            >
+              Coming Soon
+            </button>
           </div>
-          <div className="rounded-xl border border-white/10 bg-[#171717] p-6 shadow-lg">
-            <h3 className="text-lg font-semibold">Agency $49/mo</h3>
-            <p className="mt-2 text-sm text-gray-300">5 team members + analytics</p>
+
+          {/* Agency Plan - Coming Soon */}
+          <div className="rounded-xl border border-white/10 bg-[#171717] p-6 shadow-lg opacity-40">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-cyan-200">Agency $49/mo</h3>
+              <span className="rounded-full border border-yellow-400/40 bg-yellow-500/10 px-2.5 py-1 text-xs font-medium text-yellow-400">
+                Coming Soon
+              </span>
+            </div>
+            <ul className="mt-4 space-y-2 text-sm text-gray-300">
+              <li className="flex items-center gap-2">
+                <span className="text-gray-500">✓</span> 5 team members
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-gray-500">✓</span> Team analytics
+              </li>
+              <li className="flex items-center gap-2">
+                <span className="text-gray-500">✓</span> Shared templates
+              </li>
+            </ul>
+            <button
+              type="button"
+              disabled
+              className="mt-5 inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl bg-gray-600 px-5 py-2.5 text-sm font-semibold text-gray-300"
+            >
+              Coming Soon
+            </button>
           </div>
         </div>
       </section>
