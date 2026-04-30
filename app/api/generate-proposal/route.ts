@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { NextResponse } from "next/server";
+import { getSupabaseServerClient } from "@/lib/supabase-server";
 
 type RequestBody = {
   jobDescription?: string;
@@ -98,6 +99,34 @@ export async function POST(req: Request) {
     );
   }
 
+  const supabase = getSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const guestModeHeader = req.headers.get("x-guest-mode") === "true";
+
+  // Rate limiting only for signed-in users (not guests)
+  if (user && !guestModeHeader) {
+    const today = new Date().toISOString().split("T")[0];
+
+    // Check user's rate limit
+    const { data: profile } = await supabase
+      .from("user_profiles")
+      .select("proposals_today, last_proposal_date")
+      .eq("id", user.id)
+      .single();
+
+    if (profile) {
+      const isSameDay = profile.last_proposal_date === today;
+      const dailyCount = isSameDay ? profile.proposals_today : 0;
+
+      if (dailyCount >= 3) {
+        return NextResponse.json(
+          { error: "rate_limit", message: "Daily limit reached" },
+          { status: 429 }
+        );
+      }
+    }
+  }
+
   try {
     for (let attempt = 1; attempt <= MAX_PARSE_RETRIES; attempt++) {
       const controller = new AbortController();
@@ -136,6 +165,28 @@ export async function POST(req: Request) {
 
       const parsed = parseResponse(content);
       if (parsed) {
+        // Update rate limit counter for signed-in users
+        if (user && !guestModeHeader) {
+          const today = new Date().toISOString().split("T")[0];
+          const { data: profile } = await supabase
+            .from("user_profiles")
+            .select("proposals_today, last_proposal_date, total_proposals")
+            .eq("id", user.id)
+            .single();
+
+          const isSameDay = profile?.last_proposal_date === today;
+          const newDailyCount = isSameDay ? (profile?.proposals_today || 0) + 1 : 1;
+          const newTotalCount = (profile?.total_proposals || 0) + 1;
+
+          await supabase.from("user_profiles").upsert({
+            id: user.id,
+            proposals_today: newDailyCount,
+            last_proposal_date: today,
+            total_proposals: newTotalCount,
+            created_at: new Date().toISOString(),
+          }, { onConflict: "id" });
+        }
+
         return NextResponse.json(parsed, { status: 200 });
       }
 

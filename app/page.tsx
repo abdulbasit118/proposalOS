@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import AuthButton from "@/components/AuthButton";
 import ProposalGenerator from "@/components/ProposalGenerator";
+import ProposalHistory from "@/components/ProposalHistory";
+import OnboardingModal from "@/components/OnboardingModal";
 import { getSupabaseBrowserClient } from "@/lib/supabase-client";
 
 type ExampleProposal = {
@@ -45,6 +47,7 @@ export default function Home() {
   const [copiedExample, setCopiedExample] = useState<string | null>(null);
   const [guestMode, setGuestMode] = useState(false);
   const [expandedFeatures, setExpandedFeatures] = useState<Record<string, boolean>>({});
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   // Check if guest mode should persist on refresh
   useEffect(() => {
@@ -67,16 +70,40 @@ export default function Home() {
         data: { user: currentUser },
       } = await supabase.auth.getUser();
       if (mounted) setUser(currentUser);
+
+      // Check if onboarding is needed
+      if (currentUser) {
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("onboarding_completed")
+          .eq("id", currentUser.id)
+          .single();
+
+        if (!profile || profile.onboarding_completed === false) {
+          setShowOnboarding(true);
+        }
+      }
     };
 
     loadUser();
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const newUser = session?.user ?? null;
+      setUser(newUser);
+      if (newUser) {
         setShowSignInModal(false);
+        // Check onboarding for new sign-ins
+        const { data: profile } = await supabase
+          .from("user_profiles")
+          .select("onboarding_completed")
+          .eq("id", newUser.id)
+          .single();
+
+        if (!profile || profile.onboarding_completed === false) {
+          setShowOnboarding(true);
+        }
       }
     });
 
@@ -352,7 +379,10 @@ export default function Home() {
 
       <section id="generator" className="mt-10 pb-10">
         {user || guestMode ? (
-          <ProposalGenerator isGuest={guestMode && !user} />
+          <>
+            <ProposalGenerator isGuest={guestMode && !user} user={user} />
+            {user && !guestMode && <ProposalHistory user={user} />}
+          </>
         ) : (
           <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
             <div className="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-6 py-5 text-center text-sm text-cyan-100">
@@ -532,6 +562,13 @@ export default function Home() {
             </div>
           </div>
         </div>
+      )}
+
+      {showOnboarding && user && (
+        <OnboardingModal
+          user={user}
+          onComplete={() => setShowOnboarding(false)}
+        />
       )}
 
       {showSignInModal && (

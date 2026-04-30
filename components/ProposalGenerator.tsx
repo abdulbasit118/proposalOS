@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-client";
+import type { User } from "@supabase/supabase-js";
+import type { VoiceProfile } from "@/lib/voiceFingerprint";
 
 type MatchScoreResponse = {
   score: number;
@@ -39,11 +41,12 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
 
 type ProposalGeneratorProps = {
   isGuest?: boolean;
+  user?: User | null;
 };
 
 const GUEST_COUNT_KEY = "guestProposalCount";
 
-export default function ProposalGenerator({ isGuest = false }: ProposalGeneratorProps) {
+export default function ProposalGenerator({ isGuest = false, user = null }: ProposalGeneratorProps) {
   const [jobDescription, setJobDescription] = useState("");
   const [userSkills, setUserSkills] = useState("");
   const [userExperience, setUserExperience] = useState("");
@@ -56,7 +59,10 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
   const [proposalData, setProposalData] = useState<ProposalResponse | null>(null);
   const [showFeedbackToast, setShowFeedbackToast] = useState(false);
   const [showGuestLimitModal, setShowGuestLimitModal] = useState(false);
+  const [showRateLimitModal, setShowRateLimitModal] = useState(false);
   const [guestCount, setGuestCount] = useState(0);
+  const [voiceProfile, setVoiceProfile] = useState<VoiceProfile | null>(null);
+  const supabase = getSupabaseBrowserClient();
 
   // Validation errors for each field
   const [jobDescError, setJobDescError] = useState("");
@@ -69,6 +75,25 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
       setGuestCount(count);
     }
   }, [isGuest]);
+
+  // Fetch voice profile for signed-in users
+  useEffect(() => {
+    if (!user || isGuest) return;
+
+    const loadVoiceProfile = async () => {
+      const { data } = await supabase
+        .from("user_profiles")
+        .select("voice_profile")
+        .eq("id", user.id)
+        .single();
+
+      if (data?.voice_profile) {
+        setVoiceProfile(data.voice_profile as VoiceProfile);
+      }
+    };
+
+    loadVoiceProfile();
+  }, [user, isGuest]);
 
   const FEEDBACK_FORM_URL = "https://forms.gle/GTkp4vDfEt7K1njo7";
   const FEEDBACK_SESSION_KEY = "proposalos_feedback_toast_shown";
@@ -225,7 +250,9 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
             headers,
             body: JSON.stringify({
               jobDescription: payload.jobDescription,
-              voiceProfile: `Skills: ${payload.userSkills}. Experience: ${payload.userExperience}.`,
+              voiceProfile: voiceProfile
+                ? `Skills: ${payload.userSkills}. Experience: ${payload.userExperience}.\n\nUser voice profile:\n- Sentence length: ${voiceProfile.avgSentenceLength}\n- Formality: ${voiceProfile.formality}\n- Opens with: ${voiceProfile.opener} approach\n- Tone: ${voiceProfile.tone}\n- Their common phrases: ${voiceProfile.keyPhrases.join(", ") || "N/A"}`
+                : `Skills: ${payload.userSkills}. Experience: ${payload.userExperience}.`,
             }),
           },
           FETCH_TIMEOUT_MS,
@@ -236,10 +263,20 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
       const proposalJson = (await proposalRes.json()) as ProposalResponse & { error?: string };
 
       if (!matchRes.ok) {
+        // Check for rate limit
+        if (matchRes.status === 429 || matchJson.error === "rate_limit") {
+          setShowRateLimitModal(true);
+          throw new Error("rate_limit");
+        }
         throw new Error(matchJson.error || "Failed to analyze match score.");
       }
 
       if (!proposalRes.ok) {
+        // Check for rate limit
+        if (proposalRes.status === 429 || proposalJson.error === "rate_limit") {
+          setShowRateLimitModal(true);
+          throw new Error("rate_limit");
+        }
         throw new Error(proposalJson.error || "Failed to generate proposal.");
       }
 
@@ -252,7 +289,28 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
         localStorage.setItem(GUEST_COUNT_KEY, newCount.toString());
         setGuestCount(newCount);
       }
+
+      // Save to Supabase for signed-in users
+      if (user && !isGuest) {
+        await supabase.from("proposals").insert({
+          user_id: user.id,
+          job_description: jobDescription.trim(),
+          user_skills: userSkills.trim(),
+          user_experience: userExperience.trim(),
+          match_score: matchJson.score,
+          match_verdict: matchJson.verdict,
+          strengths: matchJson.strengths,
+          gaps: matchJson.gaps,
+          improvement_tip: matchJson.improvement_tip,
+          client_pain_point: proposalJson.clientPainPoint,
+          key_signals: proposalJson.keySignals,
+          proposal_text: proposalJson.proposal,
+        });
+      }
     } catch (err) {
+      if (err instanceof Error && err.message === "rate_limit") {
+        return;
+      }
       const isTimeout = err instanceof DOMException && err.name === "AbortError";
       setError(isTimeout ? "timeout" : "friendly");
       setMatchData(null);
@@ -523,6 +581,37 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
             <p className="mt-3 text-xs text-gray-400">
               100% free • No credit card
             </p>
+          </div>
+        </div>
+      )}
+
+      {showRateLimitModal && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 px-4">
+          <div className="modal-fade-in w-full max-w-md rounded-2xl border border-white/15 bg-[#131313] p-6 text-center shadow-2xl relative">
+            <button
+              type="button"
+              onClick={() => setShowRateLimitModal(false)}
+              className="absolute top-4 right-4 rounded-md border border-white/20 px-2 py-1 text-xs text-gray-200 hover:bg-white/10"
+            >
+              Close
+            </button>
+            <div className="text-4xl mb-4">🌙</div>
+            <h3 className="text-xl font-semibold">Daily limit reached</h3>
+            <p className="mt-3 text-sm text-gray-300">
+              You have used all 3 free proposals today. Come back tomorrow for 3 more — or upgrade to Pro for unlimited proposals.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setShowRateLimitModal(false);
+                // Show coming soon toast
+                alert("Pro plan coming soon!");
+              }}
+              disabled
+              className="mt-6 inline-flex w-full cursor-not-allowed items-center justify-center rounded-xl bg-gray-600 px-5 py-3 text-base font-semibold text-gray-300"
+            >
+              Upgrade to Pro — Coming Soon
+            </button>
           </div>
         </div>
       )}
