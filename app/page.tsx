@@ -47,8 +47,13 @@ export default function Home() {
 
   // Check if guest mode should persist on refresh
   useEffect(() => {
-    const guestCount = parseInt(localStorage.getItem("guestProposalCount") || "0", 10);
-    if (guestCount > 0 && guestCount < 3) {
+    // Check if user was in guest mode before
+    const wasGuestMode = localStorage.getItem("wasGuestMode") === "true";
+    // Also check if guestProposalCount exists (even if "0")
+    const guestCountStr = localStorage.getItem("guestProposalCount");
+    const hasGuestCount = guestCountStr !== null;
+
+    if (wasGuestMode || hasGuestCount) {
       setGuestMode(true);
     }
   }, []);
@@ -176,6 +181,7 @@ export default function Home() {
             <button
               type="button"
               onClick={() => {
+                localStorage.setItem("wasGuestMode", "true");
                 setGuestMode(true);
                 const element = document.getElementById("generator");
                 if (element) {
@@ -273,6 +279,7 @@ export default function Home() {
                 <button
                   type="button"
                   onClick={() => {
+                    localStorage.setItem("wasGuestMode", "true");
                     setGuestMode(true);
                     const element = document.getElementById("generator");
                     if (element) {

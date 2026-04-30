@@ -58,6 +58,11 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
   const [showGuestLimitModal, setShowGuestLimitModal] = useState(false);
   const [guestCount, setGuestCount] = useState(0);
 
+  // Validation errors for each field
+  const [jobDescError, setJobDescError] = useState("");
+  const [skillsError, setSkillsError] = useState("");
+  const [experienceError, setExperienceError] = useState("");
+
   useEffect(() => {
     if (isGuest) {
       const count = parseInt(localStorage.getItem(GUEST_COUNT_KEY) || "0", 10);
@@ -142,8 +147,37 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
   };
 
   const submit = async () => {
-    if (!jobDescription.trim() || !userSkills.trim() || !userExperience.trim()) {
-      setError("Please fill in job description, skills, and experience.");
+    // Clear previous validation errors
+    setJobDescError("");
+    setSkillsError("");
+    setExperienceError("");
+    setError(null);
+
+    let hasError = false;
+
+    // Validate each field
+    if (!jobDescription.trim()) {
+      setJobDescError("Please paste a job post to continue");
+      hasError = true;
+    }
+    if (!userSkills.trim()) {
+      setSkillsError("Add your skills so AI can match them");
+      hasError = true;
+    }
+    if (!userExperience.trim()) {
+      setExperienceError("Tell us your experience level");
+      hasError = true;
+    }
+
+    if (hasError) {
+      // Focus on the first empty field
+      if (!jobDescription.trim()) {
+        document.getElementById("jobDescription")?.focus();
+      } else if (!userSkills.trim()) {
+        document.getElementById("userSkills")?.focus();
+      } else if (!userExperience.trim()) {
+        document.getElementById("userExperience")?.focus();
+      }
       return;
     }
 
@@ -259,28 +293,61 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
           </p>
 
           <div className="mt-6 space-y-4">
-            <textarea
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              placeholder="Paste the job post here..."
-              className="h-44 w-full rounded-xl border border-white/10 bg-[#111111] px-4 py-3 text-sm text-gray-100 placeholder:text-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
-            />
+            <div>
+              <textarea
+                id="jobDescription"
+                value={jobDescription}
+                onChange={(e) => {
+                  setJobDescription(e.target.value);
+                  if (jobDescError) setJobDescError("");
+                }}
+                placeholder="Paste the job post here..."
+                className={`h-44 w-full rounded-xl border bg-[#111111] px-4 py-3 text-sm text-gray-100 placeholder:text-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 ${
+                  jobDescError ? "border-red-500" : "border-white/10"
+                }`}
+              />
+              {jobDescError && (
+                <p className="mt-1 text-sm text-red-400">{jobDescError}</p>
+              )}
+            </div>
 
-            <input
-              type="text"
-              value={userSkills}
-              onChange={(e) => setUserSkills(e.target.value)}
-              placeholder="e.g. React, Node.js, Python"
-              className="w-full rounded-xl border border-white/10 bg-[#111111] px-4 py-3 text-sm text-gray-100 placeholder:text-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
-            />
+            <div>
+              <input
+                id="userSkills"
+                type="text"
+                value={userSkills}
+                onChange={(e) => {
+                  setUserSkills(e.target.value);
+                  if (skillsError) setSkillsError("");
+                }}
+                placeholder="e.g. React, Node.js, Python"
+                className={`w-full rounded-xl border bg-[#111111] px-4 py-3 text-sm text-gray-100 placeholder:text-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 ${
+                  skillsError ? "border-red-500" : "border-white/10"
+                }`}
+              />
+              {skillsError && (
+                <p className="mt-1 text-sm text-red-400">{skillsError}</p>
+              )}
+            </div>
 
-            <input
-              type="text"
-              value={userExperience}
-              onChange={(e) => setUserExperience(e.target.value)}
-              placeholder="e.g. 3 years web development"
-              className="w-full rounded-xl border border-white/10 bg-[#111111] px-4 py-3 text-sm text-gray-100 placeholder:text-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30"
-            />
+            <div>
+              <input
+                id="userExperience"
+                type="text"
+                value={userExperience}
+                onChange={(e) => {
+                  setUserExperience(e.target.value);
+                  if (experienceError) setExperienceError("");
+                }}
+                placeholder="e.g. 3 years web development"
+                className={`w-full rounded-xl border bg-[#111111] px-4 py-3 text-sm text-gray-100 placeholder:text-gray-500 focus:border-cyan-500 focus:outline-none focus:ring-2 focus:ring-cyan-500/30 ${
+                  experienceError ? "border-red-500" : "border-white/10"
+                }`}
+              />
+              {experienceError && (
+                <p className="mt-1 text-sm text-red-400">{experienceError}</p>
+              )}
+            </div>
 
             <button
               type="button"
