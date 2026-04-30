@@ -109,12 +109,8 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
   useEffect(() => {
     if (!showResults) return;
 
-    // Show after the proposal is generated and visible.
-    const timer = window.setTimeout(() => {
-      maybeShowFeedbackToast();
-    }, 30000);
-
-    return () => window.clearTimeout(timer);
+    // Show feedback toast after first successful generation
+    maybeShowFeedbackToast();
   }, [showResults]);
 
   useEffect(() => {
@@ -221,14 +217,8 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
         localStorage.setItem(GUEST_COUNT_KEY, newCount.toString());
         setGuestCount(newCount);
       }
-    } catch (err) {
-      const message =
-        err instanceof DOMException && err.name === "AbortError"
-          ? "Request timed out after 120 seconds. Please try again."
-          : err instanceof Error
-            ? err.message
-            : "Something went wrong.";
-      setError(message);
+    } catch {
+      setError("friendly");
       setMatchData(null);
       setProposalData(null);
     } finally {
@@ -315,8 +305,17 @@ export default function ProposalGenerator({ isGuest = false }: ProposalGenerator
           </div>
 
           {error && (
-            <div className="mt-4 rounded-lg border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-              {error}
+            <div className="mt-4 rounded-xl border border-yellow-400/30 bg-yellow-500/10 px-6 py-5 text-center">
+              <div className="text-2xl">⚠️</div>
+              <h3 className="mt-2 text-lg font-semibold text-yellow-100">Something went wrong</h3>
+              <p className="mt-1 text-sm text-yellow-200">Our AI is taking a break. Please try again!</p>
+              <button
+                type="button"
+                onClick={() => setError("")}
+                className="mt-4 inline-flex items-center justify-center rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400"
+              >
+                Try Again
+              </button>
             </div>
           )}
         </div>
