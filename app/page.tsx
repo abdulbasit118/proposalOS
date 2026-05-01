@@ -166,15 +166,9 @@ export default function Home() {
         <p className="text-sm font-medium uppercase tracking-[0.2em] text-cyan-300">ProposalOS</p>
         <div className="flex items-center gap-3">
           {guestMode && !user && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-gray-400">Guest Mode</span>
-              <button
-                type="button"
-                onClick={handleSignIn}
-                className="rounded-md border border-white/20 px-2 py-1 text-xs text-gray-200 hover:bg-white/10"
-              >
-                Sign In
-              </button>
+            <div className="hidden sm:flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              <span className="text-xs font-medium text-emerald-200">Guest Mode</span>
             </div>
           )}
           <AuthButton />
