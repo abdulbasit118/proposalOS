@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo, useCallback } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-client";
 import type { User } from "@supabase/supabase-js";
 import type { VoiceProfile } from "@/lib/voiceFingerprint";
@@ -62,7 +62,7 @@ export default function ProposalGenerator({ isGuest = false, user = null }: Prop
   const [showRateLimitModal, setShowRateLimitModal] = useState(false);
   const [guestCount, setGuestCount] = useState(0);
   const [voiceProfile, setVoiceProfile] = useState<VoiceProfile | null>(null);
-  const supabase = getSupabaseBrowserClient();
+  const supabase = useMemo(() => getSupabaseBrowserClient(), []);
 
   // Validation errors for each field
   const [jobDescError, setJobDescError] = useState("");
@@ -93,33 +93,33 @@ export default function ProposalGenerator({ isGuest = false, user = null }: Prop
     };
 
     loadVoiceProfile();
-  }, [user, isGuest]);
+  }, [user, isGuest, supabase]);
 
   const FEEDBACK_FORM_URL = "https://forms.gle/GTkp4vDfEt7K1njo7";
   const FEEDBACK_SESSION_KEY = "proposalos_feedback_toast_shown";
 
-  const hasShownFeedbackThisSession = () => {
+  const hasShownFeedbackThisSession = useCallback(() => {
     try {
       return sessionStorage.getItem(FEEDBACK_SESSION_KEY) === "1";
     } catch {
       return false;
     }
-  };
+  }, []);
 
-  const markFeedbackShownThisSession = () => {
+  const markFeedbackShownThisSession = useCallback(() => {
     try {
       sessionStorage.setItem(FEEDBACK_SESSION_KEY, "1");
     } catch {
       // ignore
     }
-  };
+  }, []);
 
-  const maybeShowFeedbackToast = () => {
+  const maybeShowFeedbackToast = useCallback(() => {
     if (showFeedbackToast) return;
     if (hasShownFeedbackThisSession()) return;
     markFeedbackShownThisSession();
     setShowFeedbackToast(true);
-  };
+  }, [showFeedbackToast, hasShownFeedbackThisSession, markFeedbackShownThisSession]);
 
   useEffect(() => {
     if (!copied) return;

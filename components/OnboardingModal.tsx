@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import Image from "next/image";
 import { getSupabaseBrowserClient } from "@/lib/supabase-client";
 import type { User } from "@supabase/supabase-js";
 import type { VoiceProfile } from "@/lib/voiceFingerprint";
@@ -141,9 +142,11 @@ export default function OnboardingModal({ user, onComplete }: OnboardingModalPro
             </p>
 
             {avatarUrl && (
-              <img
+              <Image
                 src={avatarUrl}
                 alt={userName}
+                width={80}
+                height={80}
                 className="mx-auto mt-6 h-20 w-20 rounded-full border-2 border-cyan-400/30"
               />
             )}

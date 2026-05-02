@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-client";
 import type { User } from "@supabase/supabase-js";
 
@@ -24,11 +24,7 @@ export default function ProposalHistory({ user }: ProposalHistoryProps) {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const supabase = getSupabaseBrowserClient();
 
-  useEffect(() => {
-    loadProposals();
-  }, [user.id]);
-
-  const loadProposals = async () => {
+  const loadProposals = useCallback(async () => {
     setIsLoading(true);
     const { data, error } = await supabase
       .from("proposals")
@@ -41,7 +37,11 @@ export default function ProposalHistory({ user }: ProposalHistoryProps) {
       setProposals(data);
     }
     setIsLoading(false);
-  };
+  }, [user.id, supabase]);
+
+  useEffect(() => {
+    loadProposals();
+  }, [loadProposals]);
 
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
