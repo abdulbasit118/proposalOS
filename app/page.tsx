@@ -520,6 +520,13 @@ export default function Home() {
             <span className="text-base leading-none">💬</span>
             Give Feedback
           </a>
+          <Link
+            href="/privacy"
+            className="inline-flex items-center gap-2 rounded-lg border border-white/10 bg-white/5 px-3 py-1.5 text-sm text-gray-300 transition hover:bg-white/10 hover:text-gray-100"
+          >
+            <span className="text-base leading-none">🔒</span>
+            Privacy Policy
+          </Link>
         </div>
       </footer>
 
