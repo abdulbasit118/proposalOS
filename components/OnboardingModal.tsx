@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { getSupabaseBrowserClient } from "@/lib/supabase-client";
 import type { User } from "@supabase/supabase-js";
@@ -22,6 +22,7 @@ export default function OnboardingModal({ user, onComplete }: OnboardingModalPro
   const [samples, setSamples] = useState(["", "", ""]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [detectedTraits, setDetectedTraits] = useState<string[]>([]);
+  const [avatarError, setAvatarError] = useState(false);
   const supabase = getSupabaseBrowserClient();
 
   const userName = user.user_metadata?.full_name || user.email?.split("@")[0] || "there";
@@ -34,13 +35,16 @@ export default function OnboardingModal({ user, onComplete }: OnboardingModalPro
   };
 
   const handleSkip = () => {
-    // Save empty samples and complete with default profile
-    completeOnboarding([]);
+    // Go to Step 3 with default traits
+    setDetectedTraits(["Tone: Professional & Direct", "Style: Concise sentences", "Opening: Problem-first"]);
+    setStep(3);
   };
 
   const handleAnalyze = async () => {
     const validSamples = samples.filter((s) => s.trim().length > 0);
 
+    // Go to Step 3 first
+    setStep(3);
     setIsAnalyzing(true);
 
     // Simulate analysis delay
@@ -54,7 +58,6 @@ export default function OnboardingModal({ user, onComplete }: OnboardingModalPro
 
     setDetectedTraits(traits);
     setIsAnalyzing(false);
-    setStep(3);
 
     // Save samples to database
     if (validSamples.length > 0) {
@@ -62,23 +65,24 @@ export default function OnboardingModal({ user, onComplete }: OnboardingModalPro
         await supabase.from("onboarding_samples").insert({
           user_id: user.id,
           sample_text: validSamples[i],
-          sample_number: i + 1,
         });
       }
     }
 
-    // Analyze and save voice profile
+    // Generate voice profile and save
     const { analyzeVoice } = await import("@/lib/voiceFingerprint");
-    const voiceProfile = analyzeVoice(validSamples);
-
-    // Complete onboarding
-    await completeOnboarding(validSamples, voiceProfile);
+    const voiceProfile = await analyzeVoice(validSamples);
+    await supabase.from("user_profiles").upsert({
+      id: user.id,
+      voice_profile: voiceProfile,
+    });
   };
 
   const completeOnboarding = async (validSamples: string[], voiceProfile?: VoiceProfile) => {
     const { analyzeVoice } = await import("@/lib/voiceFingerprint");
     const profile = voiceProfile || analyzeVoice(validSamples);
 
+    // Supabase protection
     await supabase
       .from("user_profiles")
       .update({
@@ -89,6 +93,9 @@ export default function OnboardingModal({ user, onComplete }: OnboardingModalPro
         avatar_url: user.user_metadata?.avatar_url,
       })
       .eq("id", user.id);
+
+    // localStorage backup
+    localStorage.setItem('onboarding_done_' + user.id, 'true');
 
     onComplete();
   };
@@ -101,9 +108,23 @@ export default function OnboardingModal({ user, onComplete }: OnboardingModalPro
 
   const canAnalyze = samples[0].trim().length > 0;
 
+  useEffect(() => {
+    // Lock body scroll when modal opens
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+
+    return () => {
+      // Restore body scroll when modal closes
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, []);
+
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 px-4">
-      <div className="w-full max-w-[560px] rounded-2xl border border-white/15 bg-[#171717] p-6 shadow-2xl">
+    <div className="fixed inset-0 z-[9999] overflow-y-auto bg-black/80 px-4">
+      <div className="relative my-4 mx-auto max-w-[560px] w-[92%] max-h-[90vh] overflow-y-auto rounded-xl bg-[#111] p-6">
         {/* Progress dots */}
         <div className="mb-6 flex items-center justify-center gap-2">
           {STEPS.map((s) => (
@@ -141,14 +162,17 @@ export default function OnboardingModal({ user, onComplete }: OnboardingModalPro
               Let&apos;s set up your profile so AI can write proposals in YOUR exact voice
             </p>
 
-            {avatarUrl && (
-              <Image
+            {!avatarError && avatarUrl ? (
+              <img
                 src={avatarUrl}
                 alt={userName}
-                width={80}
-                height={80}
+                onError={() => setAvatarError(true)}
                 className="mx-auto mt-6 h-20 w-20 rounded-full border-2 border-cyan-400/30"
               />
+            ) : (
+              <div className="mx-auto mt-6 h-20 w-20 rounded-full bg-cyan-500 flex items-center justify-center text-white text-2xl font-bold">
+                {user.user_metadata?.full_name?.[0] || user.email?.[0] || 'U'}
+              </div>
             )}
             <p className="mt-4 text-lg font-medium text-cyan-200">Hey {userName}!</p>
 

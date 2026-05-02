@@ -1,6 +1,7 @@
  "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { User } from "@supabase/supabase-js";
 import AuthButton from "@/components/AuthButton";
 import ProposalGenerator from "@/components/ProposalGenerator";
@@ -48,6 +49,7 @@ export default function Home() {
   const [guestMode, setGuestMode] = useState(false);
   const [expandedFeatures, setExpandedFeatures] = useState<Record<string, boolean>>({});
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [proposalCount, setProposalCount] = useState(0);
 
   // Check if guest mode should persist on refresh
   useEffect(() => {
@@ -71,17 +73,27 @@ export default function Home() {
       } = await supabase.auth.getUser();
       if (mounted) setUser(currentUser);
 
-      // Check if onboarding is needed
+      // Check if onboarding is needed (double protection)
       if (currentUser) {
+        const localStorageDone = localStorage.getItem('onboarding_done_' + currentUser.id) === 'true';
+        
         const { data: profile } = await supabase
           .from("user_profiles")
           .select("onboarding_completed")
           .eq("id", currentUser.id)
           .single();
 
-        if (!profile || profile.onboarding_completed === false) {
+        // Show modal ONLY when both false/missing
+        if (!localStorageDone && (!profile || profile.onboarding_completed === false)) {
           setShowOnboarding(true);
         }
+
+        // Fetch proposal count
+        const { data: proposals } = await supabase
+          .from("proposals")
+          .select("id")
+          .eq("user_id", currentUser.id);
+        setProposalCount(proposals?.length || 0);
       }
     };
 
@@ -94,16 +106,26 @@ export default function Home() {
       setUser(newUser);
       if (newUser) {
         setShowSignInModal(false);
-        // Check onboarding for new sign-ins
+        // Check onboarding for new sign-ins (double protection)
+        const localStorageDone = localStorage.getItem('onboarding_done_' + newUser.id) === 'true';
+        
         const { data: profile } = await supabase
           .from("user_profiles")
           .select("onboarding_completed")
           .eq("id", newUser.id)
           .single();
 
-        if (!profile || profile.onboarding_completed === false) {
+        // Show modal ONLY when both false/missing
+        if (!localStorageDone && (!profile || profile.onboarding_completed === false)) {
           setShowOnboarding(true);
         }
+
+        // Fetch proposal count
+        const { data: proposals } = await supabase
+          .from("proposals")
+          .select("id")
+          .eq("user_id", newUser.id);
+        setProposalCount(proposals?.length || 0);
       }
     });
 
@@ -374,11 +396,53 @@ export default function Home() {
       <section id="generator" className="mt-10 pb-10">
         {user || guestMode ? (
           <>
-            <ProposalGenerator isGuest={guestMode && !user} user={user} />
-            {user && !guestMode && <ProposalHistory user={user} />}
+            <ProposalGenerator 
+              isGuest={guestMode && !user} 
+              user={user} 
+              onProposalSaved={() => setProposalCount(prev => prev + 1)}
+            />
+            {user && !guestMode && proposalCount > 0 && <ProposalHistory user={user} />}
           </>
         ) : (
           <div className="mx-auto w-full max-w-4xl px-4 sm:px-6 lg:px-8">
+            {/* Benefits Section */}
+            <div className="mb-8">
+              <h2 className="text-center text-2xl font-semibold text-white mb-8">Everything you get — 100% free</h2>
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div className="rounded-xl border border-white/10 bg-[#171717] p-6">
+                  <div className="text-3xl mb-3">🎯</div>
+                  <h3 className="font-semibold text-white mb-2">Match Score</h3>
+                  <p className="text-sm text-gray-300">
+                    Know before you apply. Get a 0-100 score showing how well you fit the job.
+                  </p>
+                </div>
+                
+                <div className="rounded-xl border border-white/10 bg-[#171717] p-6">
+                  <div className="text-3xl mb-3">✍️</div>
+                  <h3 className="font-semibold text-white mb-2">Voice-Matched Proposals</h3>
+                  <p className="text-sm text-gray-300">
+                    AI writes in YOUR exact tone. Not generic. Not robotic. Sounds like you wrote it.
+                  </p>
+                </div>
+                
+                <div className="rounded-xl border border-white/10 bg-[#171717] p-6">
+                  <div className="text-3xl mb-3">📋</div>
+                  <h3 className="font-semibold text-white mb-2">Proposal History</h3>
+                  <p className="text-sm text-gray-300">
+                    Every proposal saved automatically. Copy and reuse your best ones anytime.
+                  </p>
+                </div>
+                
+                <div className="rounded-xl border border-white/10 bg-[#171717] p-6">
+                  <div className="text-3xl mb-3">🧠</div>
+                  <h3 className="font-semibold text-white mb-2">Pain Point Detection</h3>
+                  <p className="text-sm text-gray-300">
+                    AI finds what the client really wants and opens your proposal addressing that.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             <div className="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 px-6 py-5 text-center text-sm text-cyan-100">
               <p className="mb-4">Sign in with Google or try Guest Mode to generate your first proposal</p>
               <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">

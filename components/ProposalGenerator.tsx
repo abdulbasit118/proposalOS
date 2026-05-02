@@ -5,6 +5,12 @@ import { getSupabaseBrowserClient } from "@/lib/supabase-client";
 import type { User } from "@supabase/supabase-js";
 import type { VoiceProfile } from "@/lib/voiceFingerprint";
 
+interface ProposalGeneratorProps {
+  isGuest?: boolean;
+  user?: User | null;
+  onProposalSaved?: () => void;
+}
+
 type MatchScoreResponse = {
   score: number;
   verdict: "Strong Match" | "Good Match" | "Weak Match";
@@ -38,11 +44,6 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
     window.clearTimeout(timeoutId);
   }
 }
-
-type ProposalGeneratorProps = {
-  isGuest?: boolean;
-  user?: User | null;
-};
 
 const GUEST_COUNT_KEY = "guestProposalCount";
 
@@ -306,6 +307,11 @@ export default function ProposalGenerator({ isGuest = false, user = null }: Prop
           key_signals: proposalJson.keySignals,
           proposal_text: proposalJson.proposal,
         });
+
+        // Call onProposalSaved callback
+        if (onProposalSaved) {
+          onProposalSaved();
+        }
       }
     } catch (err) {
       if (err instanceof Error && err.message === "rate_limit") {
