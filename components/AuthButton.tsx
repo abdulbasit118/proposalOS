@@ -8,6 +8,8 @@ export default function AuthButton() {
   const supabase = useMemo(() => getSupabaseBrowserClient(), []);
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [signInError, setSignInError] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -39,11 +41,31 @@ export default function AuthButton() {
   }, [supabase]);
 
   const signIn = async () => {
+    setIsSigningIn(true);
+    setSignInError(null);
+    
     const redirectTo = `${window.location.origin}/auth/callback`;
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo },
-    });
+    console.log('Starting sign in, redirectTo:', redirectTo);
+    
+    // 15 second timeout
+    const timeoutId = setTimeout(() => {
+      setIsSigningIn(false);
+      setSignInError("Sign in timed out. Please try again.");
+    }, 15000);
+    
+    try {
+      await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo },
+      });
+      // Clear timeout if sign in completes quickly
+      clearTimeout(timeoutId);
+    } catch (error) {
+      clearTimeout(timeoutId);
+      setIsSigningIn(false);
+      setSignInError("Sign in failed. Please try again.");
+      console.error('Sign in error:', error);
+    }
   };
 
   const signOut = async () => {
@@ -60,13 +82,19 @@ export default function AuthButton() {
 
   if (!user) {
     return (
-      <button
-        type="button"
-        onClick={signIn}
-        className="inline-flex items-center rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400"
-      >
-        Sign in with Google
-      </button>
+      <div className="space-y-2">
+        <button
+          type="button"
+          onClick={signIn}
+          disabled={isSigningIn}
+          className="inline-flex items-center rounded-lg bg-cyan-500 px-4 py-2 text-sm font-semibold text-slate-900 transition hover:bg-cyan-400 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {isSigningIn ? "Signing in..." : "Sign in with Google"}
+        </button>
+        {signInError && (
+          <p className="text-xs text-red-400">{signInError}</p>
+        )}
+      </div>
     );
   }
 
