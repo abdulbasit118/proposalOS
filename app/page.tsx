@@ -166,7 +166,7 @@ export default function Home() {
         <p className="text-sm font-medium uppercase tracking-[0.2em] text-cyan-300">ProposalOS</p>
         <div className="flex items-center gap-3">
           {guestMode && !user && (
-            <div className="hidden sm:flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5">
+            <div className="flex items-center gap-2 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-3 py-1.5">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
               <span className="text-xs font-medium text-emerald-200">Guest Mode</span>
             </div>
