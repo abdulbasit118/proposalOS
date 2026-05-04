@@ -1,22 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import ProposalGenerator from "@/components/ProposalGenerator";
 
 export default function Home() {
-  const [guestMode, setGuestMode] = useState(true);
-
-  // Check if guest mode should persist on refresh
-  useEffect(() => {
-    const wasGuestMode = localStorage.getItem("wasGuestMode") === "true";
-    const guestCountStr = localStorage.getItem("guestProposalCount");
-    const hasGuestCount = guestCountStr !== null;
-
-    if (wasGuestMode || hasGuestCount) {
-      setGuestMode(true);
-    }
-  }, []);
+  // Guest mode is always enabled in the open app
 
   return (
     <main className="min-h-screen bg-[#0f0f0f] text-gray-100">
