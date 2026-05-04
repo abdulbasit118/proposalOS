@@ -14,24 +14,21 @@ export default function AuthButton() {
   useEffect(() => {
     let mounted = true;
 
-    const loadUser = async () => {
-      const {
-        data: { user: currentUser },
-      } = await supabase.auth.getUser();
-
-      if (mounted) {
-        setUser(currentUser);
-        setIsLoading(false);
-      }
-    };
-
-    loadUser();
-
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-      setIsLoading(false);
+      if (mounted) {
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      }
+    });
+
+    // Initial session check
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (mounted) {
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      }
     });
 
     return () => {
