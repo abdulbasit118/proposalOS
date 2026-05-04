@@ -47,7 +47,7 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
 
 const GUEST_COUNT_KEY = "guestProposalCount";
 
-export default function ProposalGenerator({ isGuest = false, user = null }: ProposalGeneratorProps) {
+export default function ProposalGenerator({ isGuest = false, user = null, onProposalSaved }: ProposalGeneratorProps) {
   const [jobDescription, setJobDescription] = useState("");
   const [userSkills, setUserSkills] = useState("");
   const [userExperience, setUserExperience] = useState("");
