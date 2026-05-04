@@ -632,7 +632,13 @@ export default function Home() {
       {showOnboarding && user && (
         <OnboardingModal
           user={user}
-          onComplete={() => setShowOnboarding(false)}
+          onComplete={() => {
+            setShowOnboarding(false)
+            localStorage.setItem(
+              'onboarding_done_' + user.id, 
+              'true'
+            )
+          }}
         />
       )}
 

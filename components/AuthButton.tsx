@@ -68,8 +68,11 @@ export default function AuthButton() {
     }
   };
 
-  const signOut = async () => {
-    await supabase.auth.signOut();
+  const handleSignOut = async () => {
+    const supabase = getSupabaseBrowserClient()
+    await supabase.auth.signOut()
+    localStorage.clear()
+    window.location.href = '/'
   };
 
   if (isLoading) {
@@ -115,7 +118,7 @@ export default function AuthButton() {
       </div>
       <button
         type="button"
-        onClick={signOut}
+        onClick={handleSignOut}
         className="rounded-md border border-white/20 text-xs px-2 py-1 font-medium text-gray-200 transition hover:bg-white/10"
       >
         Sign out
