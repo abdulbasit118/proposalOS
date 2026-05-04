@@ -66,16 +66,39 @@ export default function AuthButton() {
   };
 
   const handleSignOut = async () => {
+  console.log('=== SIGN OUT START ===')
+  console.log('Current user before sign out:', user?.email)
+  console.log('Current localStorage keys:', Object.keys(localStorage))
+  console.log('Current sessionStorage keys:', Object.keys(sessionStorage))
+  
   try {
+    console.log('Getting supabase client...')
     const supabaseClient = getSupabaseBrowserClient()
-    await supabaseClient.auth.signOut({ scope: 'global' })
+    
+    console.log('Calling signOut with global scope...')
+    const { error } = await supabaseClient.auth.signOut({ scope: 'global' })
+    
+    if (error) {
+      console.error('Supabase signOut error:', error)
+    } else {
+      console.log('Supabase signOut successful')
+    }
+    
+    console.log('Clearing localStorage...')
     localStorage.clear()
+    console.log('Clearing sessionStorage...')
     sessionStorage.clear()
+    
+    console.log('All cleanup done, redirecting...')
+    window.location.href = window.location.origin + '/?signout=' + Date.now()
+    
   } catch (error) {
     console.error('Sign out error:', error)
-  } finally {
+    console.log('Force redirecting due to error...')
     window.location.href = window.location.origin + '/?signout=' + Date.now()
   }
+  
+  console.log('=== SIGN OUT END ===')
 };
 
   if (isLoading) {
