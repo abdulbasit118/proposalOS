@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Image from "next/image";
 import { getSupabaseBrowserClient } from "@/lib/supabase-client";
 import type { User } from "@supabase/supabase-js";
 import type { VoiceProfile } from "@/lib/voiceFingerprint";
@@ -78,28 +77,7 @@ export default function OnboardingModal({ user, onComplete }: OnboardingModalPro
     });
   };
 
-  const completeOnboarding = async (validSamples: string[], voiceProfile?: VoiceProfile) => {
-    const { analyzeVoice } = await import("@/lib/voiceFingerprint");
-    const profile = voiceProfile || analyzeVoice(validSamples);
-
-    // Supabase protection
-    await supabase
-      .from("user_profiles")
-      .update({
-        onboarding_completed: true,
-        voice_profile: profile,
-        email: user.email,
-        full_name: user.user_metadata?.full_name,
-        avatar_url: user.user_metadata?.avatar_url,
-      })
-      .eq("id", user.id);
-
-    // localStorage backup
-    localStorage.setItem('onboarding_done_' + user.id, 'true');
-
-    onComplete();
-  };
-
+  
   const updateSample = (index: number, value: string) => {
     const newSamples = [...samples];
     newSamples[index] = value;
@@ -163,6 +141,7 @@ export default function OnboardingModal({ user, onComplete }: OnboardingModalPro
             </p>
 
             {!avatarError && avatarUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={avatarUrl}
                 alt={userName}

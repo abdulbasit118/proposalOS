@@ -142,7 +142,7 @@ export default function ProposalGenerator({ isGuest = false, user = null }: Prop
 
     // Show feedback toast after first successful generation
     maybeShowFeedbackToast();
-  }, [showResults]);
+  }, [showResults, maybeShowFeedbackToast]);
 
   useEffect(() => {
     if (!isLoading) {
