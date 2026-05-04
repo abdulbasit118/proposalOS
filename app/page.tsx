@@ -155,6 +155,112 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Pricing Section */}
+      <section className="mx-auto w-full max-w-6xl px-4 pt-20 pb-20 sm:px-6 lg:px-8">
+        <div className="text-center">
+          <h2 className="text-3xl font-bold text-white sm:text-4xl">Simple, Transparent Pricing</h2>
+          <p className="mt-4 text-lg text-gray-300">
+            Start free, upgrade when you need more proposals
+          </p>
+        </div>
+
+        <div className="mt-12 grid gap-8 sm:grid-cols-3">
+          {/* Free Plan */}
+          <div className="rounded-2xl border border-white/10 bg-[#171717] p-8">
+            <h3 className="text-2xl font-bold text-white">Free</h3>
+            <div className="mt-4">
+              <span className="text-4xl font-bold text-white">$0</span>
+              <span className="text-gray-400">/month</span>
+            </div>
+            <p className="mt-4 text-gray-300">Perfect for trying out ProposalOS</p>
+            <ul className="mt-6 space-y-3">
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400">✓</span>
+                <span className="text-gray-300">3 proposals per month</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400">✓</span>
+                <span className="text-gray-300">Basic match scoring</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400">✓</span>
+                <span className="text-gray-300">Standard templates</span>
+              </li>
+            </ul>
+            <button className="mt-8 w-full rounded-xl border border-white/20 bg-white/5 px-6 py-3 font-medium text-white transition hover:bg-white/10">
+              Current Plan
+            </button>
+          </div>
+
+          {/* Pro Plan */}
+          <div className="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 p-8 relative">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <span className="rounded-full border border-cyan-400 bg-cyan-500 px-4 py-1 text-sm font-medium text-cyan-900">
+                Most Popular
+              </span>
+            </div>
+            <h3 className="text-2xl font-bold text-white">Pro</h3>
+            <div className="mt-4">
+              <span className="text-4xl font-bold text-white">$29</span>
+              <span className="text-gray-400">/month</span>
+            </div>
+            <p className="mt-4 text-gray-300">For serious freelancers</p>
+            <ul className="mt-6 space-y-3">
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400">✓</span>
+                <span className="text-gray-300">Unlimited proposals</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400">✓</span>
+                <span className="text-gray-300">Advanced match scoring</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400">✓</span>
+                <span className="text-gray-300">Voice matching</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400">✓</span>
+                <span className="text-gray-300">Priority support</span>
+              </li>
+            </ul>
+            <button className="mt-8 w-full rounded-xl bg-cyan-500 px-6 py-3 font-medium text-cyan-900 transition hover:bg-cyan-400">
+              Upgrade Soon
+            </button>
+          </div>
+
+          {/* Enterprise Plan */}
+          <div className="rounded-2xl border border-white/10 bg-[#171717] p-8">
+            <h3 className="text-2xl font-bold text-white">Enterprise</h3>
+            <div className="mt-4">
+              <span className="text-4xl font-bold text-white">$99</span>
+              <span className="text-gray-400">/month</span>
+            </div>
+            <p className="mt-4 text-gray-300">For agencies and teams</p>
+            <ul className="mt-6 space-y-3">
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400">✓</span>
+                <span className="text-gray-300">Everything in Pro</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400">✓</span>
+                <span className="text-gray-300">Team collaboration</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400">✓</span>
+                <span className="text-gray-300">Custom templates</span>
+              </li>
+              <li className="flex items-center gap-3">
+                <span className="text-emerald-400">✓</span>
+                <span className="text-gray-300">API access</span>
+              </li>
+            </ul>
+            <button className="mt-8 w-full rounded-xl border border-white/20 bg-white/5 px-6 py-3 font-medium text-white transition hover:bg-white/10">
+              Contact Sales
+            </button>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="border-t border-white/10 pt-8">
