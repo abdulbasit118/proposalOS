@@ -1,10 +1,12 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import ProposalGenerator from "@/components/ProposalGenerator";
 
 export default function Home() {
   // Guest mode is always enabled in the open app
+  const [expandedFeature, setExpandedFeature] = useState<number | null>(null);
 
   return (
     <main className="min-h-screen bg-[#0f0f0f] text-gray-100">
@@ -56,33 +58,120 @@ export default function Home() {
 
         {/* Benefits Section */}
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {/* Feature 1 - Smart Match Score */}
           <div className="rounded-2xl border border-white/10 bg-[#171717] p-6">
             <div className="text-3xl mb-4">🎯</div>
-            <h3 className="text-lg font-semibold text-white mb-2">Match Score</h3>
+            <h3 className="text-lg font-semibold text-white mb-2">Smart Match Score</h3>
             <p className="text-sm text-gray-300">
-              See exactly how well you match each job before applying
+              AI analyzes job requirements against your skills and gives a 0-100 match score
             </p>
+            <div 
+              className="overflow-hidden transition-all duration-300 ease-in-out"
+              style={{ maxHeight: expandedFeature === 1 ? '200px' : '0px' }}
+            >
+              <p className="text-sm text-gray-300 mt-3">
+                Know before you apply. The match score breaks down your strengths, identifies skill gaps, and gives you one specific tip to improve your chances. Stop wasting proposals on jobs you will not get.
+              </p>
+            </div>
+            <button
+              onClick={() => setExpandedFeature(expandedFeature === 1 ? null : 1)}
+              className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1"
+            >
+              {expandedFeature === 1 ? 'Show less ↑' : 'Read more ↓'}
+              <span 
+                className="inline-block transition-transform duration-300"
+                style={{ transform: expandedFeature === 1 ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              >
+                ↓
+              </span>
+            </button>
           </div>
+
+          {/* Feature 2 - Voice-Matched Writing */}
           <div className="rounded-2xl border border-white/10 bg-[#171717] p-6">
             <div className="text-3xl mb-4">🎤</div>
-            <h3 className="text-lg font-semibold text-white mb-2">Voice-Matched</h3>
+            <h3 className="text-lg font-semibold text-white mb-2">Voice-Matched Writing</h3>
             <p className="text-sm text-gray-300">
-              AI learns your writing style and writes in your exact voice
+              Proposals written in your exact tone and style, not generic AI text
             </p>
+            <div 
+              className="overflow-hidden transition-all duration-300 ease-in-out"
+              style={{ maxHeight: expandedFeature === 2 ? '200px' : '0px' }}
+            >
+              <p className="text-sm text-gray-300 mt-3">
+                Every freelancer has a unique voice. ProposalOS learns your sentence length, formality level, and opening patterns. Result: proposals that sound exactly like you wrote them.
+              </p>
+            </div>
+            <button
+              onClick={() => setExpandedFeature(expandedFeature === 2 ? null : 2)}
+              className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1"
+            >
+              {expandedFeature === 2 ? 'Show less ↑' : 'Read more ↓'}
+              <span 
+                className="inline-block transition-transform duration-300"
+                style={{ transform: expandedFeature === 2 ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              >
+                ↓
+              </span>
+            </button>
           </div>
+
+          {/* Feature 3 - Proposal History */}
           <div className="rounded-2xl border border-white/10 bg-[#171717] p-6">
             <div className="text-3xl mb-4">📋</div>
             <h3 className="text-lg font-semibold text-white mb-2">Proposal History</h3>
             <p className="text-sm text-gray-300">
               Keep track of all your proposals in one place
             </p>
+            <div 
+              className="overflow-hidden transition-all duration-300 ease-in-out"
+              style={{ maxHeight: expandedFeature === 3 ? '200px' : '0px' }}
+            >
+              <p className="text-sm text-gray-300 mt-3">
+                Never lose a proposal again. Your entire proposal history is saved with match scores, client details, and outcomes. Learn what works and refine your approach over time.
+              </p>
+            </div>
+            <button
+              onClick={() => setExpandedFeature(expandedFeature === 3 ? null : 3)}
+              className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1"
+            >
+              {expandedFeature === 3 ? 'Show less ↑' : 'Read more ↓'}
+              <span 
+                className="inline-block transition-transform duration-300"
+                style={{ transform: expandedFeature === 3 ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              >
+                ↓
+              </span>
+            </button>
           </div>
+
+          {/* Feature 4 - Pain Point Detection */}
           <div className="rounded-2xl border border-white/10 bg-[#171717] p-6">
             <div className="text-3xl mb-4">💡</div>
             <h3 className="text-lg font-semibold text-white mb-2">Pain Point Detection</h3>
             <p className="text-sm text-gray-300">
-              AI identifies client pain points and addresses them directly
+              Finds what the client actually wants before writing a single word
             </p>
+            <div 
+              className="overflow-hidden transition-all duration-300 ease-in-out"
+              style={{ maxHeight: expandedFeature === 4 ? '200px' : '0px' }}
+            >
+              <p className="text-sm text-gray-300 mt-3">
+                Clients rarely say what they really need. Our AI reads between the lines, finds the hidden frustration and real deadline pressure. Then opens your proposal by addressing that pain directly. This is why our proposals get replies when others do not.
+              </p>
+            </div>
+            <button
+              onClick={() => setExpandedFeature(expandedFeature === 4 ? null : 4)}
+              className="mt-3 text-sm text-cyan-400 hover:text-cyan-300 transition-colors flex items-center gap-1"
+            >
+              {expandedFeature === 4 ? 'Show less ↑' : 'Read more ↓'}
+              <span 
+                className="inline-block transition-transform duration-300"
+                style={{ transform: expandedFeature === 4 ? 'rotate(180deg)' : 'rotate(0deg)' }}
+              >
+                ↓
+              </span>
+            </button>
           </div>
         </div>
       </section>
