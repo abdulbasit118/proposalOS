@@ -69,11 +69,19 @@ export default function AuthButton() {
   };
 
   const handleSignOut = async () => {
-    const supabase = getSupabaseBrowserClient()
-    await supabase.auth.signOut()
+  try {
+    const supabaseClient = getSupabaseBrowserClient()
+    await supabaseClient.auth.signOut({ scope: 'local' })
     localStorage.clear()
-    window.location.href = '/'
-  };
+    sessionStorage.clear()
+    window.location.replace('/')
+  } catch (error) {
+    console.error('Sign out error:', error)
+    localStorage.clear()
+    sessionStorage.clear()
+    window.location.replace('/')
+  }
+};
 
   if (isLoading) {
     return (
