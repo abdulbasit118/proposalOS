@@ -80,7 +80,7 @@ export default function AuthButton() {
     // Add timeout to prevent hanging
     const signOutPromise = supabaseClient.auth.signOut({ scope: 'global' })
     const timeoutPromise = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error('SignOut timeout')), 5000)
+      setTimeout(() => reject(new Error('SignOut timeout')), 2000)
     )
     
     try {
@@ -92,7 +92,9 @@ export default function AuthButton() {
         console.log('Supabase signOut successful')
       }
     } catch (timeoutError) {
-      console.error('SignOut timed out:', timeoutError)
+      console.error('SignOut timed out, using fallback:', timeoutError)
+      // Fallback: force sign out by clearing everything
+      console.log('Using fallback sign out method...')
     }
     
     console.log('Clearing localStorage...')
