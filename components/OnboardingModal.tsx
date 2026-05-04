@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-client";
 import type { User } from "@supabase/supabase-js";
-import type { VoiceProfile } from "@/lib/voiceFingerprint";
 
 interface OnboardingModalProps {
   user: User;
