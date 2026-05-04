@@ -69,22 +69,31 @@ export default function AuthButton() {
   };
 
   const handleSignOut = async () => {
+  console.log('Sign out button clicked - starting sign out process')
   try {
     const supabaseClient = getSupabaseBrowserClient()
+    console.log('Got supabase client, attempting sign out with global scope')
     const { error } = await supabaseClient.auth.signOut({ scope: 'global' })
     if (error) {
-      console.error('Sign out error:', error)
+      console.error('Supabase sign out error:', error)
+    } else {
+      console.log('Supabase sign out successful')
     }
+    console.log('Clearing localStorage')
     localStorage.clear()
+    console.log('Clearing sessionStorage')
     sessionStorage.clear()
+    console.log('Clearing cookies')
     document.cookie.split(";").forEach((c) => {
       document.cookie = c
         .replace(/^ +/, "")
         .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
     })
+    console.log('Redirecting to home page')
     window.location.replace('/')
   } catch (error) {
     console.error('Sign out error:', error)
+    console.log('Force redirecting to home page due to error')
     window.location.replace('/')
   }
 };
