@@ -76,12 +76,23 @@ export default function AuthButton() {
     const supabaseClient = getSupabaseBrowserClient()
     
     console.log('Calling signOut with global scope...')
-    const { error } = await supabaseClient.auth.signOut({ scope: 'global' })
     
-    if (error) {
-      console.error('Supabase signOut error:', error)
-    } else {
-      console.log('Supabase signOut successful')
+    // Add timeout to prevent hanging
+    const signOutPromise = supabaseClient.auth.signOut({ scope: 'global' })
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error('SignOut timeout')), 5000)
+    )
+    
+    try {
+      const { error } = await Promise.race([signOutPromise, timeoutPromise])
+      
+      if (error) {
+        console.error('Supabase signOut error:', error)
+      } else {
+        console.log('Supabase signOut successful')
+      }
+    } catch (timeoutError) {
+      console.error('SignOut timed out:', timeoutError)
     }
     
     console.log('Clearing localStorage...')
