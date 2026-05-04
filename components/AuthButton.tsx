@@ -84,10 +84,10 @@ export default function AuthButton() {
     )
     
     try {
-      const { error } = await Promise.race([signOutPromise, timeoutPromise])
+      const result = await Promise.race([signOutPromise, timeoutPromise]) as { error?: any }
       
-      if (error) {
-        console.error('Supabase signOut error:', error)
+      if (result.error) {
+        console.error('Supabase signOut error:', result.error)
       } else {
         console.log('Supabase signOut successful')
       }
