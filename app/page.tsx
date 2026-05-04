@@ -176,7 +176,7 @@ export default function Home() {
             <ul className="mt-6 space-y-3">
               <li className="flex items-center gap-3">
                 <span className="text-emerald-400">✓</span>
-                <span className="text-gray-300">3 proposals per month</span>
+                <span className="text-gray-300">3 proposals per week</span>
               </li>
               <li className="flex items-center gap-3">
                 <span className="text-emerald-400">✓</span>
@@ -193,15 +193,15 @@ export default function Home() {
           </div>
 
           {/* Pro Plan */}
-          <div className="rounded-2xl border border-cyan-400/30 bg-cyan-500/10 p-8 relative">
+          <div className="rounded-2xl border border-gray-400/30 bg-gray-500/10 p-8 relative opacity-75">
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <span className="rounded-full border border-cyan-400 bg-cyan-500 px-4 py-1 text-sm font-medium text-cyan-900">
-                Most Popular
+              <span className="rounded-full border border-gray-400 bg-gray-500 px-4 py-1 text-sm font-medium text-gray-900">
+                Coming Soon
               </span>
             </div>
             <h3 className="text-2xl font-bold text-white">Pro</h3>
             <div className="mt-4">
-              <span className="text-4xl font-bold text-white">$29</span>
+              <span className="text-4xl font-bold text-white">$19</span>
               <span className="text-gray-400">/month</span>
             </div>
             <p className="mt-4 text-gray-300">For serious freelancers</p>
@@ -223,16 +223,21 @@ export default function Home() {
                 <span className="text-gray-300">Priority support</span>
               </li>
             </ul>
-            <button className="mt-8 w-full rounded-xl bg-cyan-500 px-6 py-3 font-medium text-cyan-900 transition hover:bg-cyan-400">
-              Upgrade Soon
+            <button className="mt-8 w-full rounded-xl border border-white/20 bg-white/5 px-6 py-3 font-medium text-white transition hover:bg-white/10 cursor-not-allowed" disabled>
+              Coming Soon
             </button>
           </div>
 
-          {/* Enterprise Plan */}
-          <div className="rounded-2xl border border-white/10 bg-[#171717] p-8">
-            <h3 className="text-2xl font-bold text-white">Enterprise</h3>
+          {/* Agency Plan */}
+          <div className="rounded-2xl border border-gray-400/30 bg-gray-500/10 p-8 relative opacity-75">
+            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+              <span className="rounded-full border border-gray-400 bg-gray-500 px-4 py-1 text-sm font-medium text-gray-900">
+                Coming Soon
+              </span>
+            </div>
+            <h3 className="text-2xl font-bold text-white">Agency</h3>
             <div className="mt-4">
-              <span className="text-4xl font-bold text-white">$99</span>
+              <span className="text-4xl font-bold text-white">$49</span>
               <span className="text-gray-400">/month</span>
             </div>
             <p className="mt-4 text-gray-300">For agencies and teams</p>
@@ -254,8 +259,8 @@ export default function Home() {
                 <span className="text-gray-300">API access</span>
               </li>
             </ul>
-            <button className="mt-8 w-full rounded-xl border border-white/20 bg-white/5 px-6 py-3 font-medium text-white transition hover:bg-white/10">
-              Contact Sales
+            <button className="mt-8 w-full rounded-xl border border-white/20 bg-white/5 px-6 py-3 font-medium text-white transition hover:bg-white/10 cursor-not-allowed" disabled>
+              Coming Soon
             </button>
           </div>
         </div>
