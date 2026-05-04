@@ -71,14 +71,20 @@ export default function AuthButton() {
   const handleSignOut = async () => {
   try {
     const supabaseClient = getSupabaseBrowserClient()
-    await supabaseClient.auth.signOut({ scope: 'local' })
+    const { error } = await supabaseClient.auth.signOut({ scope: 'global' })
+    if (error) {
+      console.error('Sign out error:', error)
+    }
     localStorage.clear()
     sessionStorage.clear()
+    document.cookie.split(";").forEach((c) => {
+      document.cookie = c
+        .replace(/^ +/, "")
+        .replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/")
+    })
     window.location.replace('/')
   } catch (error) {
     console.error('Sign out error:', error)
-    localStorage.clear()
-    sessionStorage.clear()
     window.location.replace('/')
   }
 };
