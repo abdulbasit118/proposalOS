@@ -25,6 +25,46 @@ export default function HeadAgent() {
   const [prefilledJobDescription, setPrefilledJobDescription] = useState("");
   const [currentAgent, setCurrentAgent] = useState<string | null>(null);
   const [extractedUrl, setExtractedUrl] = useState<string>("");
+  const [extractedSkills, setExtractedSkills] = useState<string>("");
+  const [isExtractingSkills, setIsExtractingSkills] = useState(false);
+  const [skillsError, setSkillsError] = useState<string>("");
+
+  const handleExtractSkills = async () => {
+    if (!userInput.trim()) {
+      setSkillsError("Please paste a job description first");
+      return;
+    }
+
+    setIsExtractingSkills(true);
+    setSkillsError("");
+
+    try {
+      const response = await fetch('/api/head-agent', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userInput }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to extract skills');
+      }
+
+      const data: HeadAgentResponse = await response.json();
+      
+      if (data.extractedData?.skills && Array.isArray(data.extractedData.skills) && data.extractedData.skills.length > 0) {
+        setExtractedSkills(data.extractedData.skills.join(', '));
+      } else {
+        setSkillsError("Could not extract skills. Please add them manually.");
+      }
+    } catch (error) {
+      console.error('Skills extraction error:', error);
+      setSkillsError("Failed to extract skills. Please add them manually.");
+    } finally {
+      setIsExtractingSkills(false);
+    }
+  };
 
   const handleAnalyzeDescription = async () => {
     if (!userInput.trim()) return;

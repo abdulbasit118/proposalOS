@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import ProposalGenerator from "./ProposalGenerator";
 
 interface JobData {
   title: string;
@@ -20,6 +21,7 @@ interface JobData {
 interface JobURLAgentProps {
   initialUrl?: string;
   onBack?: () => void;
+  onJobExtracted?: (description: string, skills: string) => void;
 }
 
 const LOADING_MESSAGES = [
@@ -29,19 +31,13 @@ const LOADING_MESSAGES = [
   "Almost ready..."
 ];
 
-export default function JobURLAgent({ initialUrl = "", onBack }: JobURLAgentProps) {
+export default function JobURLAgent({ initialUrl = "", onBack, onJobExtracted }: JobURLAgentProps) {
   const [url, setUrl] = useState(initialUrl);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const [jobData, setJobData] = useState<JobData | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [showProposalForm, setShowProposalForm] = useState(false);
-  const [userSkills, setUserSkills] = useState("");
-  const [userExperience, setUserExperience] = useState("");
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [proposalResult, setProposalResult] = useState<string | null>(null);
-  const [matchScore, setMatchScore] = useState<number | null>(null);
-  const proposalFormRef = useRef<HTMLDivElement>(null);
+  const [showProposalGenerator, setShowProposalGenerator] = useState(false);
 
   const handleExtract = useCallback(async () => {
     if (!url.trim()) {
@@ -84,53 +80,14 @@ export default function JobURLAgent({ initialUrl = "", onBack }: JobURLAgentProp
 
   const handleGenerateProposal = () => {
     if (jobData?.description) {
-      setShowProposalForm(true);
-      // Pre-fill skills if available
-      if (jobData.skills.length > 0) {
-        setUserSkills(jobData.skills.join(', '));
+      if (onJobExtracted) {
+        onJobExtracted(
+          jobData.description,
+          jobData.skills.join(', ')
+        )
+      } else {
+        setShowProposalGenerator(true)
       }
-      // Smooth scroll to form
-      setTimeout(() => {
-        proposalFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 100);
-    }
-  };
-
-  const handleGenerateProposalSubmit = async () => {
-    if (!jobData?.description || !userSkills.trim()) {
-      alert('Please fill in your skills to generate a proposal');
-      return;
-    }
-
-    setIsGenerating(true);
-    setProposalResult(null);
-    setMatchScore(null);
-
-    try {
-      const response = await fetch('/api/generate-proposal', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          jobDescription: jobData.description,
-          userSkills: userSkills,
-          userExperience: userExperience
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate proposal');
-      }
-
-      const result = await response.json();
-      setProposalResult(result.proposal);
-      setMatchScore(result.matchScore);
-    } catch (error) {
-      console.error('Proposal generation error:', error);
-      alert('Failed to generate proposal. Please try again.');
-    } finally {
-      setIsGenerating(false);
     }
   };
 
@@ -138,12 +95,7 @@ export default function JobURLAgent({ initialUrl = "", onBack }: JobURLAgentProp
     setUrl(initialUrl);
     setJobData(null);
     setError(null);
-    setShowProposalForm(false);
-    setUserSkills("");
-    setUserExperience("");
-    setProposalResult(null);
-    setMatchScore(null);
-    setIsGenerating(false);
+    setShowProposalGenerator(false);
   };
 
   const handlePasteJobDescription = () => {
@@ -321,6 +273,10 @@ export default function JobURLAgent({ initialUrl = "", onBack }: JobURLAgentProp
                     </span>
                   ))}
                 </div>
+                <p className="text-xs text-gray-400 mt-1">
+                  ✏️ You can edit these skills or add 
+                  your own before generating a proposal
+                </p>
               </div>
             )}
 
@@ -370,111 +326,6 @@ export default function JobURLAgent({ initialUrl = "", onBack }: JobURLAgentProp
                 Start Over
               </button>
             </div>
-          </div>
-        )}
-
-        {/* Proposal Form Section */}
-        {showProposalForm && jobData && (
-          <div ref={proposalFormRef} className="mt-8 rounded-2xl border border-white/10 bg-[#171717] p-8 animate-fade-in">
-            <h2 className="text-2xl font-bold text-white mb-6">
-              Almost ready! Tell us about yourself
-            </h2>
-            
-            <div className="space-y-6">
-              {/* Skills Field */}
-              <div>
-                <label className="block text-white font-medium mb-2">
-                  Your relevant skills
-                </label>
-                <input
-                  type="text"
-                  value={userSkills}
-                  onChange={(e) => setUserSkills(e.target.value)}
-                  placeholder="e.g. React, Node.js, Python"
-                  className="w-full p-4 bg-[#0f0f0f] border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors"
-                />
-              </div>
-
-              {/* Experience Field */}
-              <div>
-                <label className="block text-white font-medium mb-2">
-                  Your experience
-                </label>
-                <textarea
-                  value={userExperience}
-                  onChange={(e) => setUserExperience(e.target.value)}
-                  placeholder="e.g. 3 years frontend development"
-                  className="w-full min-h-[100px] p-4 bg-[#0f0f0f] border border-white/10 rounded-xl text-white placeholder-gray-400 resize-none focus:outline-none focus:border-cyan-500 transition-colors"
-                  rows={3}
-                />
-              </div>
-
-              {/* Generate Button */}
-              <button
-                onClick={handleGenerateProposalSubmit}
-                disabled={isGenerating || !userSkills.trim()}
-                className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:bg-gray-600 disabled:cursor-not-allowed text-cyan-900 font-semibold py-4 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
-              >
-                {isGenerating ? (
-                  <>
-                    <div className="w-5 h-5 border-2 border-cyan-900 border-t-transparent rounded-full animate-spin"></div>
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    Generate My Proposal →
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Proposal Results */}
-            {proposalResult && (
-              <div className="mt-8 space-y-6 animate-fade-in">
-                {/* Match Score */}
-                {matchScore !== null && (
-                  <div className="bg-[#0f0f0f] border border-white/10 rounded-xl p-6">
-                    <h3 className="text-lg font-semibold text-white mb-4">Match Score</h3>
-                    <div className="flex items-center gap-4">
-                      <div className={`text-3xl font-bold ${
-                        matchScore >= 80 ? 'text-green-400' : 
-                        matchScore >= 60 ? 'text-yellow-400' : 'text-red-400'
-                      }`}>
-                        {matchScore}%
-                      </div>
-                      <span className="text-gray-400">
-                        {matchScore >= 80 ? 'Excellent Match' : 
-                         matchScore >= 60 ? 'Good Match' : 'Low Match'}
-                      </span>
-                    </div>
-                  </div>
-                )}
-
-                {/* Generated Proposal */}
-                <div className="bg-[#0f0f0f] border border-white/10 rounded-xl p-6">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-lg font-semibold text-white">Generated Proposal</h3>
-                    <button
-                      onClick={() => navigator.clipboard.writeText(proposalResult)}
-                      className="text-cyan-400 hover:text-cyan-300 text-sm flex items-center gap-2"
-                    >
-                      Copy Proposal
-                    </button>
-                  </div>
-                  <div className="max-h-[400px] overflow-y-auto text-gray-300 whitespace-pre-wrap">
-                    {proposalResult}
-                  </div>
-                </div>
-
-                {/* Try Another Job Button */}
-                <button
-                  onClick={handleStartOver}
-                  className="w-full bg-gray-600 hover:bg-gray-500 text-white font-semibold py-4 px-6 rounded-xl transition-colors"
-                >
-                  Try Another Job
-                </button>
-              </div>
-            )}
           </div>
         )}
       </div>

@@ -10,6 +10,8 @@ interface ProposalGeneratorProps {
   user?: User | null;
   onProposalSaved?: () => void;
   initialJobDescription?: string;
+  initialSkills?: string;
+  initialExperience?: string;
 }
 
 type MatchScoreResponse = {
@@ -48,7 +50,7 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
 
 const GUEST_COUNT_KEY = "guestProposalCount";
 
-export default function ProposalGenerator({ isGuest = false, user = null, onProposalSaved, initialJobDescription = "" }: ProposalGeneratorProps) {
+export default function ProposalGenerator({ isGuest = false, user = null, onProposalSaved, initialJobDescription = "", initialSkills, initialExperience }: ProposalGeneratorProps) {
   const [jobDescription, setJobDescription] = useState(initialJobDescription);
   const [userSkills, setUserSkills] = useState("");
   const [userExperience, setUserExperience] = useState("");
@@ -77,6 +79,19 @@ export default function ProposalGenerator({ isGuest = false, user = null, onProp
       setGuestCount(count);
     }
   }, [isGuest]);
+
+  // Pre-fill form with initial values
+  useEffect(() => {
+    if (initialJobDescription) {
+      setJobDescription(initialJobDescription);
+    }
+    if (initialSkills) {
+      setUserSkills(initialSkills);
+    }
+    if (initialExperience) {
+      setUserExperience(initialExperience);
+    }
+  }, [initialJobDescription, initialSkills, initialExperience]);
 
   // Fetch voice profile for signed-in users
   useEffect(() => {
