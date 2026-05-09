@@ -76,11 +76,6 @@ export default function HeadAgent() {
     return (
       <JobURLAgent 
         initialUrl={extractedUrl}
-        onJobExtracted={(jobDescription) => {
-          setCurrentAgent('proposal');
-          setPrefilledJobDescription(jobDescription);
-          setShowProposalGenerator(true);
-        }}
         onBack={() => {
           setCurrentAgent(null);
           setExtractedUrl('');
