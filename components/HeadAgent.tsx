@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import ProposalGenerator from "./ProposalGenerator";
+import JobURLAgent from "./JobURLAgent";
 
 interface HeadAgentResponse {
   intent: 'PROPOSAL' | 'JOB_URL' | 'CV' | 'COVER_LETTER' | 'FOLLOW_UP' | 'UNKNOWN';
@@ -20,6 +21,8 @@ export default function HeadAgent() {
   const [result, setResult] = useState<HeadAgentResponse | null>(null);
   const [showProposalGenerator, setShowProposalGenerator] = useState(false);
   const [prefilledJobDescription, setPrefilledJobDescription] = useState("");
+  const [currentAgent, setCurrentAgent] = useState<string | null>(null);
+  const [extractedUrl, setExtractedUrl] = useState<string>("");
 
   const handleSubmit = async () => {
     if (!userInput.trim()) return;
@@ -50,6 +53,9 @@ export default function HeadAgent() {
           setShowProposalGenerator(true);
           break;
         case 'JOB_URL':
+          setCurrentAgent('job_url');
+          setExtractedUrl(data.extractedData?.url || userInput.trim());
+          break;
         case 'CV':
         case 'COVER_LETTER':
         case 'FOLLOW_UP':
@@ -109,7 +115,7 @@ export default function HeadAgent() {
       case 'PROPOSAL':
         return null; // Will show ProposalGenerator
       case 'JOB_URL':
-        return "Extracting job details from URL... (Coming soon — paste the job text for now)";
+        return null; // Will show JobURLAgent
       case 'CV':
         return "CV Writer coming soon! For now, paste the job description to generate a proposal.";
       case 'COVER_LETTER':
@@ -123,7 +129,7 @@ export default function HeadAgent() {
 
   const handleManualOverride = (intent: string) => {
     setResult({
-      intent: intent as any,
+      intent: intent as HeadAgentResponse['intent'],
       confidence: 100,
       reason: "Manual selection by user",
       extractedData: { url: null, jobTitle: null, skills: null }
@@ -134,11 +140,34 @@ export default function HeadAgent() {
         setPrefilledJobDescription(userInput);
         setShowProposalGenerator(true);
         break;
+      case 'JOB_URL':
+        setCurrentAgent('job_url');
+        setExtractedUrl(userInput.trim());
+        break;
       default:
         setShowProposalGenerator(false);
         break;
     }
   };
+
+  // If we should show JobURLAgent
+  if (currentAgent === 'job_url') {
+    return (
+      <JobURLAgent 
+        initialUrl={extractedUrl}
+        onJobExtracted={(jobDescription) => {
+          setCurrentAgent('proposal');
+          setPrefilledJobDescription(jobDescription);
+          setShowProposalGenerator(true);
+        }}
+        onBack={() => {
+          setCurrentAgent(null);
+          setExtractedUrl('');
+          setResult(null);
+        }}
+      />
+    );
+  }
 
   // If we should show ProposalGenerator
   if (showProposalGenerator && result?.intent === 'PROPOSAL') {
@@ -149,6 +178,7 @@ export default function HeadAgent() {
             onClick={() => {
               setShowProposalGenerator(false);
               setResult(null);
+              setCurrentAgent(null);
             }}
             className="text-cyan-400 hover:text-cyan-300 text-sm flex items-center gap-2"
           >

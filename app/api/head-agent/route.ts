@@ -110,12 +110,9 @@ Return ONLY valid JSON. No other text.`;
     let result;
     try {
       result = JSON.parse(content);
-    } catch (parseError) {
-      console.error('Failed to parse AI response:', content);
-      return NextResponse.json(
-        { error: 'Invalid response format from AI service' },
-        { status: 500 }
-      );
+    } catch {
+      console.error('Failed to parse OpenRouter response');
+      throw new Error('Failed to parse job data from AI response');
     }
 
     // Validate the response structure

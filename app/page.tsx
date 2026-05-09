@@ -3,7 +3,6 @@
 import { useState } from "react";
 import Link from "next/link";
 import HeadAgent from "@/components/HeadAgent";
-import ProposalGenerator from "@/components/ProposalGenerator";
 
 export default function Home() {
   // Guest mode is always enabled in the open app
