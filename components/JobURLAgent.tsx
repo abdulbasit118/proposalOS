@@ -60,7 +60,11 @@ export default function JobURLAgent({ initialUrl = "", onJobExtracted, onBack }:
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to extract job details');
+        if (errorData.error === 'linkedin_login_required') {
+          setError('linkedin_login_required');
+        } else {
+          throw new Error(errorData.error || 'Failed to extract job details');
+        }
       }
 
       const result = await response.json();
@@ -182,20 +186,45 @@ export default function JobURLAgent({ initialUrl = "", onJobExtracted, onBack }:
             {/* Error State */}
             {error && (
               <div className="mt-6 p-6 bg-red-500/10 border border-red-500/30 rounded-xl text-center">
-                <div className="text-4xl mb-4">⚠️</div>
-                <h3 className="text-lg font-semibold text-red-400 mb-2">
-                  Could not extract job details
-                </h3>
-                <p className="text-gray-300 mb-4">
-                  This URL may require login or is not publicly accessible.
-                  Try copying the job description and pasting it directly.
-                </p>
-                <button
-                  onClick={handlePasteJobDescription}
-                  className="bg-cyan-500 hover:bg-cyan-400 text-cyan-900 font-semibold py-2 px-4 rounded-lg transition-colors"
-                >
-                  Paste Job Description Instead
-                </button>
+                {error === 'linkedin_login_required' ? (
+                  <>
+                    <div className="text-4xl mb-4">🔒</div>
+                    <h3 className="text-lg font-semibold text-red-400 mb-2">
+                      LinkedIn requires login 🔒
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      LinkedIn job posts are only visible when logged in. 
+                      Copy the job description from LinkedIn and paste it in the Job Description tab.
+                    </p>
+                    <button
+                      onClick={() => {
+                        if (onBack) {
+                          onBack();
+                        }
+                      }}
+                      className="bg-cyan-500 hover:bg-cyan-400 text-cyan-900 font-semibold py-2 px-4 rounded-lg transition-colors"
+                    >
+                      Switch to Paste Description →
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div className="text-4xl mb-4">⚠️</div>
+                    <h3 className="text-lg font-semibold text-red-400 mb-2">
+                      Could not extract job details
+                    </h3>
+                    <p className="text-gray-300 mb-4">
+                      This URL may require login or is not publicly accessible.
+                      Try copying the job description and pasting it directly.
+                    </p>
+                    <button
+                      onClick={handlePasteJobDescription}
+                      className="bg-cyan-500 hover:bg-cyan-400 text-cyan-900 font-semibold py-2 px-4 rounded-lg transition-colors"
+                    >
+                      Paste Job Description Instead
+                    </button>
+                  </>
+                )}
               </div>
             )}
           </>

@@ -17,6 +17,8 @@ interface HeadAgentResponse {
 
 export default function HeadAgent() {
   const [userInput, setUserInput] = useState("");
+  const [urlInput, setUrlInput] = useState("");
+  const [activeTab, setActiveTab] = useState<'description' | 'url'>('description');
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<HeadAgentResponse | null>(null);
   const [showProposalGenerator, setShowProposalGenerator] = useState(false);
@@ -24,7 +26,7 @@ export default function HeadAgent() {
   const [currentAgent, setCurrentAgent] = useState<string | null>(null);
   const [extractedUrl, setExtractedUrl] = useState<string>("");
 
-  const handleSubmit = async () => {
+  const handleAnalyzeDescription = async () => {
     if (!userInput.trim()) return;
 
     setIsLoading(true);
@@ -46,23 +48,9 @@ export default function HeadAgent() {
       const data: HeadAgentResponse = await response.json();
       setResult(data);
 
-      // Handle routing based on intent
-      switch (data.intent) {
-        case 'PROPOSAL':
-          setPrefilledJobDescription(userInput);
-          setShowProposalGenerator(true);
-          break;
-        case 'JOB_URL':
-          setCurrentAgent('job_url');
-          setExtractedUrl(data.extractedData?.url || userInput.trim());
-          break;
-        case 'CV':
-        case 'COVER_LETTER':
-        case 'FOLLOW_UP':
-        case 'UNKNOWN':
-          setShowProposalGenerator(false);
-          break;
-      }
+      // For direct description input, always go to proposal generator
+      setPrefilledJobDescription(userInput);
+      setShowProposalGenerator(true);
     } catch (error) {
       console.error('Head Agent error:', error);
       setResult({
@@ -76,80 +64,13 @@ export default function HeadAgent() {
     }
   };
 
-  const getIntentMessage = (intent: string) => {
-    switch (intent) {
-      case 'PROPOSAL':
-        return "Detected: Job Proposal ✓";
-      case 'JOB_URL':
-        return "Detected: Job URL ✓";
-      case 'CV':
-        return "Detected: CV Request ✓";
-      case 'COVER_LETTER':
-        return "Detected: Cover Letter ✓";
-      case 'FOLLOW_UP':
-        return "Detected: Follow-up Request ✓";
-      default:
-        return "Detected: Unknown ✓";
-    }
+  const handleExtractURL = () => {
+    if (!urlInput.trim()) return;
+    setCurrentAgent('job_url');
+    setExtractedUrl(urlInput.trim());
   };
 
-  const getIntentColor = (intent: string) => {
-    switch (intent) {
-      case 'PROPOSAL':
-        return "bg-green-500/20 text-green-400 border-green-500/30";
-      case 'JOB_URL':
-        return "bg-blue-500/20 text-blue-400 border-blue-500/30";
-      case 'CV':
-        return "bg-purple-500/20 text-purple-400 border-purple-500/30";
-      case 'COVER_LETTER':
-        return "bg-yellow-500/20 text-yellow-400 border-yellow-500/30";
-      case 'FOLLOW_UP':
-        return "bg-orange-500/20 text-orange-400 border-orange-500/30";
-      default:
-        return "bg-gray-500/20 text-gray-400 border-gray-500/30";
-    }
-  };
-
-  const getStatusMessage = (intent: string) => {
-    switch (intent) {
-      case 'PROPOSAL':
-        return null; // Will show ProposalGenerator
-      case 'JOB_URL':
-        return null; // Will show JobURLAgent
-      case 'CV':
-        return "CV Writer coming soon! For now, paste the job description to generate a proposal.";
-      case 'COVER_LETTER':
-        return "Cover Letter Agent coming soon! For now, paste the job description to generate a proposal.";
-      case 'FOLLOW_UP':
-        return "Follow-up Agent coming soon! Paste your original proposal and we will write a follow-up soon.";
-      default:
-        return "We could not figure out what you need. Try pasting a job description or URL.";
-    }
-  };
-
-  const handleManualOverride = (intent: string) => {
-    setResult({
-      intent: intent as HeadAgentResponse['intent'],
-      confidence: 100,
-      reason: "Manual selection by user",
-      extractedData: { url: null, jobTitle: null, skills: null }
-    });
-
-    switch (intent) {
-      case 'PROPOSAL':
-        setPrefilledJobDescription(userInput);
-        setShowProposalGenerator(true);
-        break;
-      case 'JOB_URL':
-        setCurrentAgent('job_url');
-        setExtractedUrl(userInput.trim());
-        break;
-      default:
-        setShowProposalGenerator(false);
-        break;
-    }
-  };
-
+  
   // If we should show JobURLAgent
   if (currentAgent === 'job_url') {
     return (
@@ -193,90 +114,100 @@ export default function HeadAgent() {
   return (
     <div className="w-full max-w-4xl mx-auto">
       <div className="rounded-2xl border border-white/10 bg-[#171717] p-8">
-        {/* Main Input */}
-        <textarea
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Paste a job post, drop a URL, ask for a CV, cover letter, or follow-up message... ProposalOS figures out what you need."
-          className="w-full min-h-[200px] p-4 bg-[#0f0f0f] border border-white/10 rounded-xl text-white placeholder-gray-400 resize-none focus:outline-none focus:border-cyan-500 transition-colors"
-          rows={8}
-          disabled={isLoading}
-        />
+        {/* Tabs */}
+        <div className="flex gap-6 mb-6 border-b border-white/10">
+          <button
+            onClick={() => setActiveTab('description')}
+            className={`pb-3 px-1 font-medium transition-colors ${
+              activeTab === 'description'
+                ? 'text-white border-b-2 border-cyan-500'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            📋 Paste Job Description
+          </button>
+          <button
+            onClick={() => setActiveTab('url')}
+            className={`pb-3 px-1 font-medium transition-colors ${
+              activeTab === 'url'
+                ? 'text-white border-b-2 border-cyan-500'
+                : 'text-gray-400 hover:text-gray-300'
+            }`}
+          >
+            🔗 Paste Job URL
+          </button>
+        </div>
 
-        {/* Hint Text */}
-        <p className="mt-3 text-sm text-gray-400">
-          Works with: Job Posts • Upwork URLs • CV Requests • Cover Letters • Follow-ups
-        </p>
-
-        {/* Submit Button */}
-        <button
-          onClick={handleSubmit}
-          disabled={isLoading || !userInput.trim()}
-          className="mt-6 w-full bg-cyan-500 hover:bg-cyan-400 disabled:bg-gray-600 disabled:cursor-not-allowed text-cyan-900 font-semibold py-4 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
-        >
-          {isLoading ? (
-            <>
-              <div className="w-5 h-5 border-2 border-cyan-900 border-t-transparent rounded-full animate-spin"></div>
-              Reading your input...
-            </>
-          ) : (
-            <>
-              Let ProposalOS Decide →
-            </>
-          )}
-        </button>
-
-        {/* Result Display */}
-        {result && (
-          <div className="mt-6 space-y-4">
-            {/* Intent Badge */}
-            <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border text-sm font-medium ${getIntentColor(result.intent)} animate-fade-in`}>
-              {getIntentMessage(result.intent)}
-            </div>
-
-            {/* Status Message */}
-            {getStatusMessage(result.intent) && (
-              <div className="p-4 bg-[#0f0f0f] border border-white/10 rounded-xl">
-                <p className="text-gray-300">{getStatusMessage(result.intent)}</p>
-              </div>
-            )}
-
-            {/* Manual Override */}
-            <div className="pt-4 border-t border-white/10">
-              <p className="text-sm text-gray-400 mb-3">Not right? Choose manually:</p>
-              <div className="flex flex-wrap gap-2">
-                <button
-                  onClick={() => handleManualOverride('PROPOSAL')}
-                  className="px-4 py-2 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-lg hover:bg-cyan-500/30 transition-colors text-sm"
-                >
-                  Write Proposal
-                </button>
-                <button
-                  onClick={() => handleManualOverride('JOB_URL')}
-                  className="px-4 py-2 bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-lg hover:bg-blue-500/30 transition-colors text-sm"
-                >
-                  Extract URL
-                </button>
-                <button
-                  onClick={() => handleManualOverride('CV')}
-                  className="px-4 py-2 bg-purple-500/20 text-purple-400 border border-purple-500/30 rounded-lg hover:bg-purple-500/30 transition-colors text-sm"
-                >
-                  Write CV
-                </button>
-                <button
-                  onClick={() => handleManualOverride('COVER_LETTER')}
-                  className="px-4 py-2 bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded-lg hover:bg-yellow-500/30 transition-colors text-sm"
-                >
-                  Cover Letter
-                </button>
-                <button
-                  onClick={() => handleManualOverride('FOLLOW_UP')}
-                  className="px-4 py-2 bg-orange-500/20 text-orange-400 border border-orange-500/30 rounded-lg hover:bg-orange-500/30 transition-colors text-sm"
-                >
-                  Follow Up
-                </button>
-              </div>
-            </div>
+        {/* Tab Content */}
+        {activeTab === 'description' ? (
+          <div className="space-y-4">
+            <textarea
+              value={userInput}
+              onChange={(e) => setUserInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && e.ctrlKey) {
+                  e.preventDefault();
+                  handleAnalyzeDescription();
+                }
+              }}
+              placeholder="Paste the full job description here..."
+              className="w-full min-h-[200px] p-4 bg-[#0f0f0f] border border-white/10 rounded-xl text-white placeholder-gray-400 resize-none focus:outline-none focus:border-cyan-500 transition-colors"
+              rows={8}
+              disabled={isLoading}
+            />
+            <p className="text-sm text-gray-400">Press Ctrl+Enter to generate</p>
+            <button
+              onClick={handleAnalyzeDescription}
+              disabled={isLoading || !userInput.trim()}
+              className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:bg-gray-600 disabled:cursor-not-allowed text-cyan-900 font-semibold py-4 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-cyan-900 border-t-transparent rounded-full animate-spin"></div>
+                  Analyzing...
+                </>
+              ) : (
+                <>
+                  Analyze & Generate Proposal →
+                </>
+              )}
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <input
+              type="text"
+              value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleExtractURL();
+                }
+              }}
+              placeholder="Paste Upwork, Fiverr, or LinkedIn URL..."
+              className="w-full p-4 bg-[#0f0f0f] border border-white/10 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:border-cyan-500 transition-colors"
+              disabled={isLoading}
+            />
+            <button
+              onClick={handleExtractURL}
+              disabled={isLoading || !urlInput.trim()}
+              className="w-full bg-cyan-500 hover:bg-cyan-400 disabled:bg-gray-600 disabled:cursor-not-allowed text-cyan-900 font-semibold py-4 px-6 rounded-xl transition-colors flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-cyan-900 border-t-transparent rounded-full animate-spin"></div>
+                  Extracting...
+                </>
+              ) : (
+                <>
+                  Extract Job Details →
+                </>
+              )}
+            </button>
+            <p className="text-sm text-gray-400 text-center">
+              Supports: Upwork • Fiverr • LinkedIn • Freelancer.com
+            </p>
           </div>
         )}
       </div>

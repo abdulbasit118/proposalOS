@@ -1,5 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+function stripHtml(html: string): string {
+  return html
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 interface JobData {
   title: string;
   platform: 'Upwork' | 'Fiverr' | 'LinkedIn' | 'Freelancer' | 'Other';
@@ -36,6 +50,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Handle LinkedIn specifically
+    if (url.includes('linkedin.com')) {
+      return NextResponse.json({
+        error: 'linkedin_login_required',
+        message: 'LinkedIn requires login to view jobs. Please copy the job description and paste it directly.',
+        suggestion: 'paste_description'
+      }, { status: 400 });
+    }
+
     let content = '';
     let serpApiContent = '';
 
@@ -65,7 +88,8 @@ export async function POST(request: NextRequest) {
       });
 
       if (pageResponse.ok) {
-        content = await pageResponse.text();
+        const rawContent = await pageResponse.text();
+        content = stripHtml(rawContent).slice(0, 3000);
       }
     } catch (error) {
       console.error('Direct fetch failed:', error);
