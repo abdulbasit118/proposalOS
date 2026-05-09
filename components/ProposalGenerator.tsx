@@ -9,6 +9,7 @@ interface ProposalGeneratorProps {
   isGuest?: boolean;
   user?: User | null;
   onProposalSaved?: () => void;
+  initialJobDescription?: string;
 }
 
 type MatchScoreResponse = {
@@ -47,8 +48,8 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs: nu
 
 const GUEST_COUNT_KEY = "guestProposalCount";
 
-export default function ProposalGenerator({ isGuest = false, user = null, onProposalSaved }: ProposalGeneratorProps) {
-  const [jobDescription, setJobDescription] = useState("");
+export default function ProposalGenerator({ isGuest = false, user = null, onProposalSaved, initialJobDescription = "" }: ProposalGeneratorProps) {
+  const [jobDescription, setJobDescription] = useState(initialJobDescription);
   const [userSkills, setUserSkills] = useState("");
   const [userExperience, setUserExperience] = useState("");
   const [isLoading, setIsLoading] = useState(false);

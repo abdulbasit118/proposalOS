@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import HeadAgent from "@/components/HeadAgent";
 import ProposalGenerator from "@/components/ProposalGenerator";
 
 export default function Home() {
@@ -176,9 +177,15 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Proposal Generator Section */}
+      {/* Head Agent Section */}
       <section id="generator" className="mx-auto w-full max-w-6xl px-4 pt-20 sm:px-6 lg:px-8">
-        <ProposalGenerator isGuest={true} user={null} />
+        <div className="text-center mb-12">
+          <h2 className="text-3xl font-bold text-white sm:text-4xl">Smart Proposal Assistant</h2>
+          <p className="mt-4 text-lg text-gray-300">
+            Paste anything — job posts, URLs, or requests — and let ProposalOS figure out what you need
+          </p>
+        </div>
+        <HeadAgent />
       </section>
 
       {/* Examples Section */}
